@@ -1,0 +1,687 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+#include <windows.h>
+#include <time.h>
+#include <string.h>
+
+#define VERDE "\033[0;32m"
+#define AMARELO "\033[0;33m"
+#define VERMELHO "\033[0;31m"
+#define RESET "\033[0m"
+#define AZULCL "\x1B[36m"
+#define AZULESC "\x1B[34m"
+
+
+
+void verifica();
+void salvaCliente();
+void excluirCliente();
+void verificaTabela();
+void alerta();
+void substituirArquivo();
+void procurarCliente();
+int header();
+int gotoxy(int x, int y);
+
+typedef struct
+{
+    int tm_sec;
+    int tm_min;
+    int tm_hour;
+    int tm_mday;
+    int tm_mon;
+    int tm_year;
+    int tm_wday;
+    int tm_yday;
+    int tm_isdst;
+} tm;
+
+typedef struct
+{
+    int dia;
+    int mes;
+    int ano;
+} data;
+
+typedef struct
+{
+    char nome_Cliente[128];
+    double numero_Projeto;
+    double numero_Cliente;
+    int DDD;
+    data validade;
+} cliente;
+
+int main(double numero_Projeto)
+{
+    setlocale(LC_ALL, "");
+
+    keybd_event (VK_MENU, 0x36, 0, 0);
+    keybd_event (VK_RETURN, 0x1C, 0, 0);
+    keybd_event (VK_RETURN, 0x1C, KEYEVENTF_KEYUP, 0);
+    keybd_event (VK_MENU, 0x38, KEYEVENTF_KEYUP, 0);
+
+    cliente Cliente;
+    int validade;
+    FILE *arquivo;
+    arquivo = fopen("Tabela.txt", "r+");
+    if(arquivo == NULL)
+    {
+        printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+
+    int noventa = 90;
+
+    print_alert(noventa, numero_Projeto, validade);
+    main_Dois(numero_Projeto);
+}
+
+int main_Dois(double numero_Projeto)
+{
+    FILE *arquivo;
+    arquivo = fopen("Tabela.txt", "r+");
+    if(arquivo = NULL)
+    {
+        printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+
+    cliente Cliente;
+
+    system("cls");
+    header();
+    gotoxy(85, 6);
+    printf(VERMELHO"M"RESET AMARELO"e"RESET VERMELHO"n"RESET AMARELO"u"RESET VERMELHO" p"RESET AMARELO"r"RESET VERMELHO"i"RESET AMARELO"n"RESET VERMELHO"c"RESET AMARELO"i"RESET VERMELHO"p"RESET AMARELO"a"RESET VERMELHO"l"RESET"\n");
+
+    int condicao;
+
+    while (condicao != 1 && condicao != 2 && condicao != 3 && condicao !=4 && condicao != 5 && condicao != 6)
+    {
+        printf(VERMELHO"1- "RESET AMARELO"Adicionar novo cliente\n"RESET);
+        printf(VERMELHO"2- "RESET AMARELO"Verificar a tabela de clientes\n"RESET);
+        printf(VERMELHO"3- "RESET AMARELO"Editar cliente\n"RESET);
+        printf(VERMELHO"4- "RESET AMARELO"Excluir um cliente\n"RESET);
+        printf(VERMELHO"5- "RESET AMARELO"Procurar cliente\n"RESET);
+        printf(VERMELHO"6- "RESET AMARELO"Encerrar o programa\n"RESET);
+        scanf("%d", &condicao);
+
+        if (condicao != 1 && condicao != 2 && condicao != 3 && condicao != 4 && condicao != 5 && condicao != 6)
+        {
+            system("cls");
+            header();
+            gotoxy(85, 6);
+            printf(VERMELHO"M"RESET AMARELO"e"RESET VERMELHO"n"RESET AMARELO"u"RESET VERMELHO" p"RESET AMARELO"r"RESET VERMELHO"i"RESET AMARELO"n"RESET VERMELHO"c"RESET AMARELO"i"RESET VERMELHO"p"RESET AMARELO"a"RESET VERMELHO"l"RESET"\n");
+            printf(VERMELHO"Opção inválida!\n"RESET);
+        }
+    }
+
+    switch (condicao)
+    {
+    case 1:
+        salvaCliente();
+        break;
+
+    case 2:
+        verificaTabela(numero_Projeto);
+        break;
+
+    case 3:
+        editarCliente(numero_Projeto);
+        break;
+
+    case 4:
+        excluirCliente(numero_Projeto);
+        break;
+
+    case 5:
+        procurarCliente(numero_Projeto);
+        break;
+
+    case 6:
+        system("cls");
+        header();
+        gotoxy(85, 6);
+
+        printf(VERMELHO"Encerrando...\n"RESET);
+        break;
+    }
+}
+
+void verifica(double numero_Projeto)
+{
+    cliente Cliente;
+    FILE *arquivo;
+    arquivo = fopen("Tabela.txt", "r+");
+    if (arquivo == NULL)
+    {
+        header();
+        gotoxy(85, 6);
+        printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+
+    while (fscanf(arquivo, "%127[^|]|%lf|(%d)%lf|%d/%d/%d", Cliente.nome_Cliente, &Cliente.numero_Projeto, &Cliente.DDD, &Cliente.numero_Cliente, &Cliente.validade.dia, &Cliente.validade.mes, &Cliente.validade.ano) != EOF)
+    {
+        fflush(stdin);
+        if (numero_Projeto == Cliente.numero_Projeto)
+        {
+            header();
+            gotoxy(85, 6);
+            printf(VERMELHO"Projeto já cadastrado!\n"RESET);
+            system("pause");
+            main_Dois(numero_Projeto);
+        }
+    }
+    fclose(arquivo);
+}
+
+void salvaCliente()
+{
+    system("cls");
+    header();
+    gotoxy(85, 6);
+    printf(VERMELHO"A"RESET AMARELO"d"RESET VERMELHO"i"RESET AMARELO"c"RESET VERMELHO"i"RESET AMARELO"o"RESET VERMELHO"n"RESET AMARELO"a"RESET VERMELHO"r"RESET AMARELO" c"RESET VERMELHO"l"RESET AMARELO"i"RESET VERMELHO"e"RESET AMARELO"n"RESET VERMELHO"t"RESET AMARELO"e"RESET "\n");
+
+    char nome_Cliente[128];
+    double numero_Projeto, numero_Cliente;
+    int DDD = 10;
+    data validade;
+
+    time_t mytime;
+    mytime = time(NULL);
+    struct tm tm = *localtime(&mytime);
+
+    printf(AMARELO"Número do projeto: "RESET);
+    scanf("%lf", &numero_Projeto);
+
+    verifica(numero_Projeto);
+
+    printf(AMARELO"Nome do cliente: "RESET);
+    scanf(" %127[^\n]", nome_Cliente);
+
+    printf(AMARELO"Número de telefone do %s\n"RESET, nome_Cliente);
+
+    printf(AMARELO"DDD: "RESET);
+    scanf("%d", &DDD);
+
+    while(DDD > 99 || DDD < 11)
+    {
+        printf(VERMELHO"DDD inválido, o DDD deve estar entre 11 e 99"RESET);
+        printf(AMARELO"DDD: "RESET);
+        scanf("%d", &DDD);
+    }
+
+    printf(AMARELO"Número: "RESET);
+    scanf("%lf", &numero_Cliente);
+
+    printf(AMARELO"Data de validade\n"RESET);
+    printf(AMARELO"Dia: "RESET);
+    scanf("%d", &validade.dia);
+
+    while(validade.dia > 31 || validade.dia < 1)
+    {
+        printf(VERMELHO"Dia inválido, o dia deve estar entre 1 e 31"RESET);
+        printf(AMARELO"Dia: "RESET);
+        scanf("%d", &validade.dia);
+    }
+
+    printf(AMARELO"Mês: "RESET);
+    scanf("%d", &validade.mes);
+
+    while(validade.mes > 31 || validade.mes < 1)
+    {
+        printf(VERMELHO"Mês inválido, o mês deve estar entre 1 e 31"RESET);
+        printf(AMARELO"Mês: "RESET);
+        scanf("%d", &validade.mes);
+    }
+
+    printf(AMARELO"Ano: "RESET);
+    scanf("%d", &validade.ano);
+
+    while(validade.ano < (tm.tm_year + 1900))
+    {
+        printf(VERMELHO"Ano inválido, o ano deve ser maior que o atual"RESET);
+        printf(AMARELO"Ano: "RESET);
+    }
+
+    system("cls");
+
+    FILE *arquivo;
+    arquivo = fopen("Tabela.txt", "r+");
+    if (arquivo == NULL)
+    {
+        system("cls");
+        header();
+        gotoxy(85, 6);
+        printf(VERMELHO "Erro ao abrir o arquivo!\n" RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+    /*fprintf(arquivo, "-> NOME DO CLIENTE|N PROJETO|N TELEFONE|VALIDADE\n");*/
+    fclose(arquivo);
+
+    arquivo = fopen("Tabela.txt", "a+");
+    if (arquivo == NULL)
+    {
+        system("cls");
+        header();
+        gotoxy(85, 6);
+        printf(VERMELHO "Erro ao abrir o arquivo!\n" RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+    else
+    {
+        fprintf(arquivo, "%s|%.0lf|(%d)%.0lf|%d/%d/%d", nome_Cliente, numero_Projeto, DDD, numero_Cliente, validade.dia, validade.mes, validade.ano);
+        fclose(arquivo);
+        system("cls");
+        header();
+        gotoxy(85, 6);
+        printf(VERDE"Cliente salvo com sucesso\n"RESET);
+        main_Dois(numero_Projeto);
+    }
+}
+
+void verificaTabela(double numero_Projeto)
+{
+    cliente Cliente;
+    int encontrado;
+    FILE *arquivo;
+    FILE *csv;
+    csv = fopen("TabelaExcel.csv", "w+");
+    if(csv == NULL)
+    {
+        system("cls");
+        header();
+        gotoxy(85, 6);
+        printf(VERMELHO"Erro ao abrir o arquivo\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+
+    arquivo = fopen("Tabela.txt", "r+");
+    if(arquivo == NULL)
+    {
+        system("cls");
+        header();
+        gotoxy(85, 6);
+        printf(VERMELHO"Erro ao abrir o arquivo\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+
+    fprintf(csv, "NOME;Nº PROJETO; Nº TELEFONE; VALIDADE \n");
+    fscanf(arquivo, "NOME DO CLIENTE|Nº PROJETO|Nº TELEFONE|VALIDADE\n");
+    while(fscanf(arquivo, "%127[^|]|%lf|(%d)%lf|%d/%d/%d \n", Cliente.nome_Cliente, &Cliente.numero_Projeto, &Cliente.DDD, &Cliente.numero_Cliente, &Cliente.validade.dia, &Cliente.validade.mes, &Cliente.validade.ano) != EOF)
+    {
+        fprintf(csv, "%s;%.0lf;(%d)%.0lf;%d/%d/%d \n", Cliente.nome_Cliente, Cliente.numero_Projeto, Cliente.DDD, Cliente.numero_Cliente, Cliente.validade.dia, Cliente.validade.mes, Cliente.validade.ano);
+        encontrado = 1;
+    }
+    fclose(csv);
+    fclose(arquivo);
+
+    if(encontrado == 1)
+    {
+        printf(VERDE"Arquivo gerado com sucesso!\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+    else
+    {
+        printf(VERMELHO"Erro ao gerar o arquivo!\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+}
+
+void excluirCliente(double numero_Projeto)
+{
+    int encontrado;
+    double deleteCliente;
+    cliente Cliente;
+    FILE *arquivo;
+
+    system("cls");
+    header();
+    gotoxy(85, 6);
+    printf(VERMELHO"E"RESET AMARELO"x"RESET VERMELHO"c"RESET AMARELO"l"RESET VERMELHO"u"RESET AMARELO"i"RESET VERMELHO"r "RESET AMARELO"c"RESET VERMELHO"l"RESET AMARELO"i"RESET VERMELHO"e"RESET AMARELO"n"RESET VERMELHO"t"RESET AMARELO"e"RESET "\n");
+
+    printf(AMARELO"Qual o número do projeto a ser deletado: "RESET);
+    scanf("%lf", &deleteCliente);
+
+    arquivo = fopen("Tabela.txt", "r+");
+    if(arquivo == NULL)
+    {
+        system("cls");
+        header();
+        gotoxy(85, 6);
+        printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+
+    FILE *temp;
+    temp = fopen("Temp.txt", "w");
+    if(temp == NULL)
+    {
+        system("cls");
+        header();
+        gotoxy(85, 6);
+        printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+
+    while(fscanf(arquivo, "%127[^|]|%lf|(%d)%lf|%d/%d/%d", Cliente.nome_Cliente, &Cliente.numero_Projeto, &Cliente.DDD, &Cliente.numero_Cliente, &Cliente.validade.dia, &Cliente.validade.mes, &Cliente.validade.ano) != EOF)
+    {
+        if(deleteCliente != Cliente.numero_Projeto)
+        {
+            fprintf(temp, "%s|%.0lf|(%d)%.0lf|%d/%d/%d", Cliente.nome_Cliente, Cliente.numero_Projeto, Cliente.DDD, Cliente.numero_Cliente, Cliente.validade.dia, Cliente.validade.mes, Cliente.validade.ano);
+        }
+        else
+        {
+            encontrado = 1;
+        }
+    }
+    fclose(arquivo);
+    fclose(temp);
+
+        if(encontrado == 1)
+        {
+            substituirArquivo();
+            printf(VERDE"Cliente excluído com sucesso!\n"RESET);
+            system("pause");
+            main_Dois(numero_Projeto);
+        }
+        else
+        {
+            printf(VERMELHO"Cliente não existe!\n"RESET);
+            system("pause");
+            main_Dois(numero_Projeto);
+        }
+
+}
+
+/*void editarCliente(double numero_Projeto)
+{
+    system("cls");
+    header();
+    gotoxy(85, 6);
+    printf(VERMELHO"E"RESET AMARELO"d"RESET VERMELHO"i"RESET AMARELO"t"RESET VERMELHO"a"RESET AMARELO"r "RESET VERMELHO"c"RESET AMARELO"l"RESET VERMELHO"i"RESET AMARELO"e"RESET VERMELHO"n"RESET AMARELO"t"RESET VERMELHO"e"RESET "\n");
+
+    time_t mytime;
+    mytime = time(NULL);
+    struct tm tm = *localtime(&mytime);
+
+    int editaCliente;
+    int encontrado;
+
+    FILE *arquivo;
+    arquivo = fopen("Tabela.txt", "r+");
+    if(arquivo == NULL)
+    {
+        printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+
+    FILE *temp;
+    temp = fopen("Temp.txt", "w");
+    if(temp = NULL)
+    {
+        printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+
+    printf(AMARELO"Qual número do projeto a ser editado: "RESET);
+    scanf("%d", &editaCliente);
+
+    system("cls");
+
+    cliente Cliente;
+
+    while(fscanf(arquivo, "%127[^|]|%lf|(%d)%lf|%d/%d/%d", Cliente.nome_Cliente, &Cliente.numero_Projeto, &Cliente.DDD, &Cliente.numero_Cliente, &Cliente.validade.dia, &Cliente.validade.mes, &Cliente.validade.ano) != EOF)
+    {
+        if(Cliente.numero_Projeto == editaCliente)
+        {
+            encontrado = 1;
+            header();
+            gotoxy(85, 6);
+            printf(VERMELHO"E"RESET AMARELO"d"RESET VERMELHO"i"RESET AMARELO"t"RESET VERMELHO"a"RESET AMARELO"r "RESET VERMELHO"c"RESET AMARELO"l"RESET VERMELHO"i"RESET AMARELO"e"RESET VERMELHO"n"RESET AMARELO"t"RESET VERMELHO"e"RESET "\n");
+
+            printf(AMARELO"Nome: "RESET "%s\n", Cliente.nome_Cliente);
+            printf(AMARELO"Número do projeto: "RESET"%.0lf\n", Cliente.numero_Projeto);
+            printf(AMARELO"Telefone: "RESET "(%d)%.0lf\n", Cliente.DDD, Cliente.numero_Cliente);
+            printf(AMARELO"Validade: "RESET "%d/%d/%d\n", Cliente.validade.dia, Cliente.validade.mes, Cliente.validade.ano);
+            system("pause");
+            system("cls");
+
+            header();
+            gotoxy(85, 6);
+            printf(VERMELHO"E"RESET AMARELO"d"RESET VERMELHO"i"RESET AMARELO"t"RESET VERMELHO"a"RESET AMARELO"r "RESET VERMELHO"c"RESET AMARELO"l"RESET VERMELHO"i"RESET AMARELO"e"RESET VERMELHO"n"RESET AMARELO"t"RESET VERMELHO"e"RESET "\n");
+
+            printf(VERMELHO"\nNOVOS DADOS\n"RESET);
+            printf(AMARELO"Número do projeto: "RESET);
+            scanf("%lf", &Cliente.numero_Projeto);
+
+            printf(AMARELO"Nome do cliente: "RESET);
+            scanf(" %127[^\n]", Cliente.nome_Cliente);
+
+            printf(AMARELO"Número de telefone do %s\n"RESET, Cliente.nome_Cliente);
+
+            printf(AMARELO"DDD: "RESET);
+            scanf("%d", &Cliente.DDD);
+
+            while(Cliente.DDD > 99 || Cliente.DDD < 11)
+            {
+                printf(VERMELHO"DDD inválido, o DDD deve estar entre 11 e 99"RESET);
+                printf(AMARELO"DDD: "RESET);
+                scanf("%d", &Cliente.DDD);
+            }
+
+            printf(AMARELO"Número: "RESET);
+            scanf("%lf", &Cliente.numero_Cliente);
+
+            printf(AMARELO"Data de validade\n"RESET);
+            printf(AMARELO"Dia: "RESET);
+            scanf("%d", &Cliente.validade.dia);
+
+            while(Cliente.validade.dia > 31 || Cliente.validade.dia < 1)
+            {
+                printf(VERMELHO"Dia inválido, o dia deve estar entre 1 e 31"RESET);
+                printf(AMARELO"Dia: "RESET);
+                scanf("%d", &Cliente.validade.dia);
+            }
+
+            printf(AMARELO"Mês: "RESET);
+            scanf("%d", &Cliente.validade.mes);
+
+            while(Cliente.validade.mes > 31 || Cliente.validade.mes < 1)
+            {
+                printf(VERMELHO"Mês inválido, o mês deve estar entre 1 e 31"RESET);
+                printf(AMARELO"Mês: "RESET);
+                scanf("%d", &Cliente.validade.mes);
+            }
+
+            printf(AMARELO"Ano: "RESET);
+            scanf("%d", &Cliente.validade.ano);
+
+            while(Cliente.validade.ano < (tm.tm_year + 1900))
+            {
+                printf(VERMELHO"Ano inválido, o ano deve ser maior que o atual"RESET);
+                printf(AMARELO"Ano: "RESET);
+                scanf("%d", &Cliente.validade.ano);
+            }
+        }
+        else
+        {
+            fprintf(temp, "%s|%.0lf|(%d)%.0lf|%d/%d/%d", Cliente.nome_Cliente, Cliente.numero_Projeto, Cliente.DDD, Cliente.numero_Cliente, Cliente.validade.dia, Cliente.validade.mes, Cliente.validade.ano);
+        }
+    }
+
+    fclose(arquivo);
+    fclose(temp);
+
+    if(encontrado == 1)
+        {
+            substituirArquivo();
+            system("cls");
+            header();
+            gotoxy(85, 6);
+            printf(VERMELHO"E"RESET AMARELO"d"RESET VERMELHO"i"RESET AMARELO"t"RESET VERMELHO"a"RESET AMARELO"r "RESET VERMELHO"c"RESET AMARELO"l"RESET VERMELHO"i"RESET AMARELO"e"RESET VERMELHO"n"RESET AMARELO"t"RESET VERMELHO"e"RESET "\n");
+            printf(VERDE"\nCliente editado com sucesso!\n"RESET  );
+            system("pause");
+            main_Dois(numero_Projeto);
+        }
+        else
+        {
+            system("cls");
+            header();
+            gotoxy(85, 6);
+            printf(VERMELHO"E"RESET AMARELO"d"RESET VERMELHO"i"RESET AMARELO"t"RESET VERMELHO"a"RESET AMARELO"r "RESET VERMELHO"c"RESET AMARELO"l"RESET VERMELHO"i"RESET AMARELO"e"RESET VERMELHO"n"RESET AMARELO"t"RESET VERMELHO"e"RESET "\n");
+            printf(VERMELHO"Cliente não encontrado!\n"RESET);
+            system("pause");
+            main_Dois(numero_Projeto);
+        }
+}*/
+
+void substituirArquivo()
+{
+    FILE *arquivo, *temp;
+    arquivo = fopen ("Tabela.txt", "w"); // Limpa o arquivo
+    arquivo = fopen ("Tabela.txt", "a"); // Abre o arquivo para escrita
+    char ch;
+    temp = fopen("Temp.txt", "r+");
+    while ((ch = fgetc(temp)) != EOF)
+    {
+        // Escreva cada caractere no arquivo Produto.txt
+        fputc(ch, arquivo);
+    }
+    //printf("Arquivo copiado com sucesso.\n");
+    fclose(arquivo);
+    temp = fopen ("Temp.txt", "w"); // Limpa o arquivo temporario
+    fclose(temp);
+    /*system("pause");*/
+}
+
+void procurarCliente(double numero_Projeto)
+{
+    int encontrado;
+    cliente Cliente;
+
+    system("cls");
+    header();
+    gotoxy(85, 6);
+    printf(VERMELHO"P"RESET AMARELO"r"RESET VERMELHO"o"RESET AMARELO"c"RESET VERMELHO"u"RESET AMARELO"r"RESET VERMELHO"a "RESET AMARELO"c"RESET VERMELHO"l"RESET AMARELO"i"RESET VERMELHO"e"RESET AMARELO"n"RESET VERMELHO"t"RESET AMARELO"e"RESET "\n");
+
+    FILE *arquivo;
+    arquivo = fopen("Tabela.txt", "r+");
+    if(arquivo == NULL)
+    {
+        printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+
+    printf(AMARELO"Digite o número do projeto: "RESET);
+    scanf("%lf", &numero_Projeto);
+
+    while(fscanf(arquivo, "%127[^|]|%lf|(%d)%lf|%d/%d/%d", Cliente.nome_Cliente, &Cliente.numero_Projeto, &Cliente.DDD, &Cliente.numero_Cliente, &Cliente.validade.dia, &Cliente.validade.mes, &Cliente.validade.ano) != EOF)
+    {
+        if(numero_Projeto == Cliente.numero_Projeto)
+        {
+            system("cls");
+            header();
+            gotoxy(85, 6);
+            printf(VERMELHO"P"RESET AMARELO"r"RESET VERMELHO"o"RESET AMARELO"c"RESET VERMELHO"u"RESET AMARELO"r"RESET VERMELHO"a "RESET AMARELO"c"RESET VERMELHO"l"RESET AMARELO"i"RESET VERMELHO"e"RESET AMARELO"n"RESET VERMELHO"t"RESET AMARELO"e"RESET "\n");
+            printf(AMARELO"Nome: "RESET"%s\n", Cliente.nome_Cliente);
+            printf(AMARELO"Nº Projeto: "RESET"%.0lf\n", Cliente.numero_Projeto);
+            printf(AMARELO"Telefone: "RESET"(%d)%.0lf\n", Cliente.DDD, Cliente.numero_Cliente);
+            printf(AMARELO"Validade: "RESET" %d/%d/%d\n", Cliente.validade.dia, Cliente.validade.mes, Cliente.validade.ano);
+            system("pause");
+            encontrado = 1;
+            main_Dois(numero_Projeto);
+        }
+    }
+    if(encontrado != 1)
+    {
+        system("cls");
+        header();
+        gotoxy(85, 6);
+        printf(VERMELHO"P"RESET AMARELO"r"RESET VERMELHO"o"RESET AMARELO"c"RESET VERMELHO"u"RESET AMARELO"r"RESET VERMELHO"a "RESET AMARELO"c"RESET VERMELHO"l"RESET AMARELO"i"RESET VERMELHO"e"RESET AMARELO"n"RESET VERMELHO"t"RESET AMARELO"e"RESET "\n");
+        gotoxy(62, 8);
+        printf(VERMELHO"Cliente não encontrado!\n"RESET);
+        system("pause");
+        fclose(arquivo);
+        main_Dois(numero_Projeto);
+    }
+}
+
+int header()
+{
+    //design(200, 170);
+    gotoxy(0, 0);
+    printf(AMARELO"---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"RESET);
+    gotoxy(85, 2);
+    printf(VERMELHO"T"RESET AMARELO"a"RESET VERMELHO"b"RESET AMARELO"e"RESET VERMELHO"l" AMARELO"a "RESET VERMELHO"B"RESET AMARELO"o"RESET VERMELHO"m"RESET AMARELO"b"RESET VERMELHO"e"RESET AMARELO"i"RESET VERMELHO"r"RESET AMARELO"o"RESET"\n");
+    gotoxy(0, 4);
+    printf(AMARELO"---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"RESET);
+    return 0;
+}
+
+int gotoxy(int x, int y)
+{
+    COORD pos = {x, y};
+    HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleCursorPosition(output, pos);
+}
+
+void print_alert(int days, double numero_Projeto, int validade)
+{
+    time_t current_time;
+    struct tm *current_tm;
+    time(&current_time);
+    current_tm = localtime(&current_time);
+    current_tm->tm_mday += days;
+    mktime(current_tm);
+    char alert_message[100];
+    header();
+    gotoxy(89, 6);
+    strftime(alert_message, sizeof(alert_message), VERMELHO"Alerta!"RESET, current_tm);
+    printf("%s\n", alert_message);
+
+    cliente Cliente;
+    FILE *arquivo;
+    arquivo = fopen("Tabela.txt", "r+");
+    if(arquivo == NULL)
+    {
+        printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        system("pause");
+        main_Dois(numero_Projeto);
+    }
+
+    time_t mytime;
+    mytime = time(NULL);
+    struct tm tm = *localtime(&mytime);
+    int validade_mes;
+
+    while(fscanf(arquivo, "%127[^|]|%lf|(%d)%lf|%d/%d/%d", Cliente.nome_Cliente, &Cliente.numero_Projeto, &Cliente.DDD, &Cliente.numero_Cliente, &Cliente.validade.dia, &Cliente.validade.mes, &Cliente.validade.ano) != EOF)
+    {
+        if(Cliente.validade.ano == (tm.tm_year + 1900) && Cliente.validade.mes <= ((tm.tm_mon + 1) + 3))
+        {
+            printf(VERMELHO"Noventa dias para vencer!\n"RESET);
+            printf(AMARELO"Nome: "RESET"%s\n", Cliente.nome_Cliente);
+            printf(AMARELO"Nº Projeto: "RESET"%.0lf\n", Cliente.numero_Projeto);
+            printf(AMARELO"Telefone: "RESET"(%d)%.0lf\n", Cliente.DDD, Cliente.numero_Cliente);
+            printf(AMARELO"\n---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"RESET);
+            system("pause");
+        }
+    }
+    fclose(arquivo);
+}
