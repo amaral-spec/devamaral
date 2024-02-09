@@ -1,0 +1,1431 @@
+//Bibliotecas utilizadas no programa
+#include <stdio.h>
+#include <stdlib.h>
+#include <locale.h>
+#include <string.h>
+#include <unistd.h>
+#include <windows.h>
+
+// --------------------Cores--------------------------------
+#define VERDE "\033[0;32m"
+#define AMARELO "\033[0;33m"
+#define VERMELHO "\033[0;31m"
+#define RESET "\033[0m"
+#define AZULCL "\x1B[36m"
+#define AZULESC "\x1B[34m"
+
+//-----------------Estrutura de dados-----------------------
+// Definindo a estrutura de dados Data, que cont�m
+// Dia, mes, ano.
+typedef struct
+{
+    int dia;
+    int mes;
+    int ano;
+}Data;
+
+//system(CHCP 65001); //Define o sistema para UTF-8
+//system(CHCP 1252 > null); //Define o sistema para UTF-8
+
+//-----------------Estrutura de dados-----------------------
+// Definindo a estrutura Produto, que cont�m
+// C�digo, descri��o, quantidade desejada, quantidade m�nima,
+// valor de compra, data de compra e data de venda.
+struct Produto
+{
+    int codigo;
+    char descricao[50];
+    int quantidadeTotal;
+    int qtdDesejada;
+    int qtdMinima;
+    float valorCompra;
+    float valorVenda;
+    Data dataCompra;
+    Data dataVenda;
+};
+
+//----------------prot�tipos das fun��es--------------------
+int main();
+void menuProduto();
+void testaArquivo();
+void compra();
+void inventario();
+void gerarRelatorio();
+void tutorial();
+void estoque();
+void substituirArquivo();
+int header();
+void gotoxy(int x, int y);
+
+//Fun��o principal do programa onde fica o menu principal
+//com as op��es de acesso aos outros menus
+int main()
+{
+    testaArquivo(); //Testar se o arquivo existe antes de abrir o programa
+    setlocale(LC_ALL, ""); //Define a linguagem do programa para portugu�s
+    system("CHCP 1252 > null");
+    int opcao;// variavel que vai permitir encaminha para outros menus
+    struct Produto produto; //Declara��o da estrutura produto
+    system("cls");//limpa qualquer defini��o anterior
+
+    //TELA CHEIA
+    keybd_event (VK_MENU, 0x36, 0, 0);
+    keybd_event (VK_RETURN, 0x1C, 0, 0);
+    keybd_event (VK_RETURN, 0x1C, KEYEVENTF_KEYUP, 0);
+    keybd_event (VK_MENU, 0x38, KEYEVENTF_KEYUP, 0);
+
+    FILE *arquivo; //Ponteiro para o arquivo estoque.txt
+    arquivo = fopen("Produtos.txt", "r"); //Abre o arquivo estoque.txt para escrita
+    if(arquivo == NULL)
+    {
+        printf("O arquivo nao pode ser aberto. \n");
+        system("pause");
+        return 0;
+    }
+
+    //Abre o arquivo e procura a quantidade minima � maior que a quantidade total de todos os produtos
+    else
+    {
+        while (fscanf(arquivo, "%d|%49[^|]|%d|%d \n", &produto.codigo, produto.descricao, &produto.qtdMinima, &produto.quantidadeTotal) != EOF)
+        {
+            if (produto.qtdMinima > produto.quantidadeTotal)
+            {
+                system("cls");
+                system("color 4F"); //Fundo vermelho para aviso de estoque baixo
+                header();
+                gotoxy(68, 6);
+                printf("Baixo Estoque\n");
+                gotoxy(51, 7);
+                printf("Favor realizar compra do produto \n");
+                printf("C�digo: %d \n", produto.codigo);
+                printf("Descri��o: %s \n", produto.descricao);
+                printf("Quantidade Minima: %d \n", produto.qtdMinima);
+                printf("Quantidade Atual: %d \n", produto.quantidadeTotal);
+                system("pause");
+                system("cls");
+                system("color 0F"); //Volta ao fundo preto
+            }
+        }
+    }
+
+    header(); // chama o cabe�alho
+    gotoxy(68, 6); //  coloca o B na coluna 68 e linha 6
+    printf("Bem-vindo(a)!");
+    gotoxy(51, 7);// coloca o E na coluna 51 e linha 7
+    printf("Escolha uma das op��es abaixo para prosseguir:\n\n");
+
+    do
+    {
+        printf("1 - Menu Produto \n");
+        printf("2 - Menu Compra \n");
+        //printf("3 - Menu Estoque \n");
+        printf("3 - Menu Invent�rio \n");
+        printf("4 - Menu Relatorio \n");
+        printf("5 - Menu Tutorial \n");
+        printf("6 - Encerrar o programa \n\n");
+        printf("Digite a op��o: ");
+        scanf(" %d", &opcao);
+        system("cls");
+        header();
+        gotoxy(67, 6);
+        printf("Bem-vindo(a)!");
+        gotoxy(51, 7);
+        printf("Escolha uma das op��es abaixo para prosseguir:\n\n");
+    }while (opcao != 1 && opcao != 2 && opcao != 3 && opcao != 4 && opcao != 5 && opcao != 6 );
+
+    switch(opcao)
+    {
+        //encaminha para produtos
+        case 1:
+            menuProduto();
+            break;
+
+        //encaminha para compra
+        case 2:
+            compra();
+            break;
+
+        //encaminha para estoque
+        //case 3:
+        //    estoque();
+        // break;
+
+        //encaminha para invent�rio
+        case 3:
+            inventario();
+            break;
+
+        //encaminha para relat�rio
+        case 4:
+            gerarRelatorio();
+            break;
+
+        //encerra o tutorial
+        case 5:
+            tutorial();
+            break;
+
+        //encerra o programa
+        case 6:
+            system("cls");
+            header();
+            gotoxy(66, 7);
+            printf(VERMELHO"Encerrando..."RESET);
+            exit(1);
+            break;
+
+        //encerra o programa
+        default:
+            printf(VERMELHO"Op��o inv�lida!"RESET);
+            exit(1);
+            break;
+    }
+    return 0;
+}
+
+void menuProduto() //fun��o que vai permitir o usu�rio acessar o menu produto
+{
+    system("cls");
+    header();
+    struct Produto produto;
+    int encontrado = 0;
+    int codigo, opcao;
+
+    FILE *arquivo, *tempFile; //ponteiro para a estrutura file
+    arquivo = fopen ("Produtos.txt", "r");
+
+    gotoxy(68, 6);
+    printf(AZULCL"Menu Produto\n"RESET);
+    gotoxy(51, 7);
+    printf("Escolha uma das op��es abaixo para prosseguir:\n\n");
+
+    do
+    {
+        printf("1 - Procurar produto\n");
+        printf("2 - Editar produto\n");
+        printf("3 - Criar produto\n");
+        printf("4 - Deletar um produto \n");
+        printf("5 - Voltar menu principal\n\n");
+        printf("Digite a op��o: ");
+        scanf("%d", &opcao);
+        system("cls");
+        header();
+        gotoxy(68, 6);
+        printf(AZULCL"Menu Produto\n"RESET);
+        gotoxy(51, 7);
+        printf("Escolha uma das op��es abaixo para prosseguir:\n");
+    }
+    while(opcao != 1 && opcao != 2 && opcao != 3 && opcao !=4 && opcao != 5);
+
+    switch(opcao)
+    {
+        //Procura o produto
+        case 1:
+            system("cls");
+            header();
+            gotoxy(68, 6);
+
+            arquivo = fopen ("Produtos.txt", "r+");
+            if((arquivo = fopen("Produtos.txt", "r+")) == NULL)
+            {
+                printf("O arquivo n�o pode ser aberto. \n");
+                exit(1);
+            }
+
+            gotoxy(65, 6);
+            printf("Procurar produto\n");
+            printf("Entre com o c�digo do produto: ");
+            scanf(" %d", &codigo);
+
+            system("cls");
+            //ler o arquivo e procurar o codigo
+            while (fscanf(arquivo, "%d|%49[^|]|%d|%d \n", &produto.codigo, produto.descricao, &produto.qtdMinima, &produto.quantidadeTotal) != EOF)
+            {
+                if (codigo == produto.codigo)
+                {
+                    system("cls");
+                    header();
+                    gotoxy(65, 6);
+                    printf("Procurar produto\n");
+                    printf("C�digo: %d \n", produto.codigo);
+                    printf("Descri��o: %s \n", produto.descricao);
+                    printf("Quantidade Minima: %d \n", produto.qtdMinima);
+                    printf("Quantidade Atual: %d \n", produto.quantidadeTotal);
+                    system("pause");
+                    encontrado = 1;
+                    menuProduto();
+                }
+            }
+            if(!encontrado)
+            {
+                system("cls");
+                header();
+                gotoxy(65, 6);
+                printf("Procurar produto\n");
+                gotoxy(62, 8);
+                printf(VERMELHO"Produto n�o encontrado!\n"RESET);
+                system("pause");
+                fclose(arquivo);
+                menuProduto();
+            }
+            break;
+
+        //Edita produto
+        case 2:
+            system("cls");
+            header();
+            gotoxy(68, 6);
+            printf("Editar produto\n");
+            printf("Entre com o c�digo do produto: ");
+            scanf("%d", &codigo);
+
+            arquivo = fopen ("Produtos.txt", "r+");
+            tempFile = fopen("temp.txt", "w");
+
+            if((arquivo = fopen("Produtos.txt", "r+")) == NULL)
+            {
+                printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);
+                exit(1);
+            }
+
+            system("cls");
+            //ler o arquivo e procurar o codigo do produto
+            while (fscanf(arquivo, "%d|%49[^|]|%d|%d \n", &produto.codigo, produto.descricao, &produto.qtdMinima, &produto.quantidadeTotal) != EOF)
+            {
+                if (codigo == produto.codigo)
+                {
+                    encontrado = 1;
+                    header();
+                    gotoxy(68, 6);
+                    printf("Editar produto\n");
+                    printf("C�digo: %d \n", produto.codigo);
+                    printf("Descri��o: %s \n", produto.descricao);
+                    printf("Quantidade Minima: %d \n", produto.qtdMinima);
+                    printf("Quantidade Atual: %d \n", produto.quantidadeTotal);
+                    system("pause");
+                    printf("Digite a nova descri��o: ");
+                    scanf(" "); // limpa o buffer do teclado
+                    scanf("%[^\n]s", produto.descricao); //ler a string com espa�os
+                    printf("Digite a nova quantidade Minima: ");
+                    scanf(" %d", &produto.qtdMinima);
+                    printf("Digite a nova quantidade Atual: ");
+                    scanf(" %d", &produto.quantidadeTotal);
+                }
+
+                fprintf(tempFile, "%d|%s|%d|%d \n", produto.codigo, produto.descricao, produto.qtdMinima, produto.quantidadeTotal);
+            }
+
+            fclose(tempFile);
+            fclose(arquivo);
+
+            // Renomear o arquivo tempor�rio para o original
+            //remove("Produtos.txt");
+            //rename("temp.txt", "Produtos.txt");
+            //N�o funciona foi criado uma fun�ao que substitui o arquivo
+            //substituirArquivo();
+
+            if (encontrado == 1)
+            {
+                substituirArquivo();
+                system("cls");
+                header();
+                gotoxy(62, 6);
+                printf(VERDE"Produto alterado com sucesso! \n"RESET);
+                system("pause");
+                menuProduto();
+            }
+            else
+            {
+                system("cls");
+                header();
+                gotoxy(62, 6);
+                printf(VERMELHO"Produto n�o encontrado! \n"RESET);
+                system("pause");
+                menuProduto();
+            }
+            break;
+
+        //Cria produto
+        case 3:
+
+            system("cls");
+            header();
+            gotoxy(68, 6);
+            printf("Criar produto\n");
+            printf("Entre com o c�digo do novo produto: ");
+            scanf(" %d", &codigo);
+
+            arquivo = fopen ("Produtos.txt", "r+");
+            if((arquivo = fopen("Produtos.txt", "r+")) == NULL)
+            {
+                printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);
+                exit(1);
+            }
+
+            system("cls");
+            //ler o arquivo e procurar o codigo do produto
+            while (fscanf(arquivo, "%d|%49[^|]|%d|%d \n", &produto.codigo, produto.descricao, &produto.qtdMinima, &produto.quantidadeTotal) != EOF)
+            {
+                if (codigo == produto.codigo)
+                {
+                    header();
+                    gotoxy(68, 6);
+                    printf("Criar produto\n");
+                    gotoxy(62, 8);
+                    printf(VERMELHO"C�digo j� cadastrado! \n"RESET);
+                    system("pause");
+                    menuProduto();
+                }
+            }
+            if(codigo != produto.codigo)
+            {
+                encontrado = 1;
+                header();
+                gotoxy(68, 6);
+                printf("Criar produto\n");
+                printf("C�digo do produto: %d \n", codigo);
+                printf("Digite a descri��o: ");
+                scanf(" %49[^\n]", produto.descricao);
+                printf("Digite a quantidade minima: ");
+                scanf(" %d", &produto.qtdMinima);
+                printf("Digite a quantidade atual: ");
+                scanf(" %d", &produto.quantidadeTotal);
+                system("pause");
+            }
+
+            if(encontrado == 1)
+            {
+                arquivo = fopen ("Produtos.txt", "a+");
+                fprintf(arquivo, "%d|%s|%d|%d \n", codigo, produto.descricao, produto.qtdMinima, produto.quantidadeTotal);
+                fclose(arquivo);
+                system("cls");
+                header();
+                gotoxy(68, 6);
+                printf("Criar produto\n");
+                gotoxy(57, 6);
+                printf(VERDE"Produto cadastrado com sucesso! \n"RESET);
+                system("pause");
+                menuProduto();
+            }
+            break;
+
+        //Deleta produto
+        case 4:
+            arquivo = fopen ("Produtos.txt", "r+");
+            tempFile = fopen("temp.txt", "w");
+            int codigo;
+            int encontrado = 0;
+            system("cls");
+            header();
+            gotoxy(68, 6);
+            printf("Deletar Produto\n");
+            printf("Digite o codigo do produto que deseja deletar: ");
+            scanf("%d", &codigo);
+
+            if((arquivo = fopen("Produtos.txt", "r+")) == NULL)
+            {
+                printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);
+                main();
+            }
+            while (fscanf(arquivo, "%d|%49[^|]|%d|%d \n", &produto.codigo, produto.descricao, &produto.qtdMinima, &produto.quantidadeTotal) != EOF)
+            {
+                if(codigo != produto.codigo)
+                {
+                    fprintf(tempFile, "%d|%s|%d|%d \n", produto.codigo, produto.descricao, produto.qtdMinima, produto.quantidadeTotal);
+                }
+                else
+                {
+                    encontrado = 1;
+                }
+            }
+            fclose(arquivo);
+            fclose(tempFile);
+
+            if(encontrado == 1)
+            {
+                substituirArquivo();
+                printf(VERDE"Produto excluido com sucesso! \n"RESET);
+                system("pause");
+                menuProduto();
+            }
+            else
+            {
+                tempFile = fopen("temp.txt", "w"); // Limpo arquivo temporario
+                printf(VERMELHO"Produto n�o existe! \n"RESET);
+                system("pause");
+                menuProduto();
+            }
+            break;
+
+        //Volta para o menu principal
+        case 5:
+            main();
+            break;
+
+        //Encerra o programa
+        default:
+            printf(VERMELHO"Op��o inv�lida!"RESET);
+            exit(1);
+            break;
+    }
+}
+
+void compra()
+{
+    system("cls");
+    header(); //Chama a fun��o que imprime o cabe�alho
+
+    struct Produto produto;
+    int encontrado = 0, somaProduto;
+    int conta = 0;
+    int opcao, codigo; //Vari�vel que vai permitir encaminhar para outros menus
+    FILE *arquivo; //Ponteiro para o arquivo estoque.txt
+    arquivo = fopen("Produtos.txt", "r+"); //Abre o arquivo estoque.txt para escrita
+
+    if(arquivo == NULL)
+    {
+        printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);
+        exit(1);
+    }
+
+    gotoxy(68, 6);
+    printf(AZULCL"Menu Compra\n"RESET);
+    gotoxy(51, 7);
+    printf("Escolha uma das op��es abaixo para prosseguir:\n\n");
+
+    //Menu de compra
+    do
+    {
+        printf("1 - Entrar com uma compra \n");
+        printf("2 - Verificar as compras de um produto \n");
+        printf("3 - Voltar menu principal \n\n");
+        printf("Digite a op��o: ");
+        scanf(" %d", &opcao);
+        system("cls");
+        header();
+        gotoxy(68, 6);
+         printf(AZULCL"Menu Compra\n"RESET);
+        gotoxy(51, 7);
+        printf("Escolha uma das op��es abaixo para prosseguir:\n\n");
+    }while(opcao != 1 && opcao != 2 && opcao != 3);
+
+    switch (opcao)
+    {
+        //entra com uma compra
+        case 1:
+            printf("Entrar com a compra\n\n");
+            printf("Digite o c�digo do produto: ");
+            scanf("%d",&codigo);
+
+            // Abrir o arquivo para leitura
+            arquivo = fopen("Produtos.txt", "r");
+            if (arquivo == NULL)
+            {
+                printf(VERMELHO"N�o foi poss�vel abrir o arquivo.\n"RESET);
+                compra();
+            }
+
+            //validar para ver se o produto existe
+            while (fscanf(arquivo, "%d|%49[^|]|%d|%d \n", &produto.codigo, produto.descricao, &produto.qtdMinima, &produto.quantidadeTotal) != EOF)
+            {
+                if (codigo == produto.codigo)
+                {
+                    encontrado = 1;
+                    printf("O produto Existe! \n");
+                    printf("Codigo do produto: %d \n", codigo);
+                    printf("Descri��o: %s \n", produto.descricao);
+                    printf("Quantidade Comprada: ");
+                    scanf(" %d", &produto.qtdDesejada);
+                    printf("Valor de Compra: ");
+                    scanf(" %f", &produto.valorCompra);
+                    printf("Dia da Compra: ");
+                    scanf(" %d", &produto.dataCompra.dia);
+                    printf("Mes da Compra: ");
+                    scanf(" %d", &produto.dataCompra.mes);
+                    printf("Ano da Compra: ");
+                    scanf(" %d", &produto.dataCompra.ano);
+                    printf("\n");
+                    break;  // Sair do loop se o produto for encontrado
+                }
+            }
+
+            fclose(arquivo);  // Fechar o arquivo ap�s a leitura
+
+            if(encontrado == 1)
+            {
+                // Abrir o arquivo para escrita
+                arquivo = fopen("ProdutosCompra.txt", "a");
+                if (arquivo == NULL)
+                {
+                    printf(VERMELHO"N�o foi poss�vel abrir o arquivo Produtos Compra.\n"RESET);
+                    system("pause");
+                    compra();
+                }
+
+                somaProduto = produto.qtdDesejada;
+                fprintf(arquivo, "%d|%s|%d|%f|%d/%d/%d - Compra \n", codigo, produto.descricao, produto.qtdDesejada, produto.valorCompra, produto.dataCompra.dia, produto.dataCompra.mes, produto.dataCompra.ano);
+                fclose(arquivo);  // Fechar o arquivo ap�s a escrita
+
+                //Abro o arquivo produtos.txt para leitura para somar a quantidade comprada com a que
+                //esta no estoque
+                arquivo = fopen("Produtos.txt", "r+"); //Abre o arquivo estoque.txt para escrita
+
+                while (fscanf(arquivo, "%d|%49[^|]|%d|%d \n", &produto.codigo, produto.descricao, &produto.qtdMinima, &produto.quantidadeTotal) != EOF)
+                {
+                    if (codigo == produto.codigo)
+                    {
+                        system("cls");
+                        header();
+                        gotoxy(51, 7);
+                        printf("Menu Compra\n");
+                        printf("\n");
+                        printf("Estoque Atual do produto \n\n");
+                        printf("C�digo: %d \n", produto.codigo);
+                        printf("Descri��o: %s \n", produto.descricao);
+                        printf("Quantidade Minima: %d \n", produto.qtdMinima);
+                        produto.quantidadeTotal = produto.quantidadeTotal + somaProduto;
+                        printf("Quantidade Total: %d \n\n", produto.quantidadeTotal);
+                    }
+                }
+
+                FILE *tempFile = fopen("temp.txt", "w"); //Limpa o arquivo temporario
+                if((arquivo = fopen("Produtos.txt", "r+")) == NULL)
+                {
+                    printf(VERMELHO"N�o foi poss�vel abrir o arquivo.\n"RESET);
+                    compra();
+                }
+
+                while (fscanf(arquivo, "%d|%49[^|]|%d|%d \n", &produto.codigo, produto.descricao, &produto.qtdMinima, &produto.quantidadeTotal) != EOF)
+                {
+                    if (codigo == produto.codigo) // Procura no arquivo o codigo do produto e soma a quantidade comprada
+                    {
+                        produto.quantidadeTotal = produto.quantidadeTotal + somaProduto;
+                        fprintf(tempFile, "%d|%s|%d|%d \n", produto.codigo, produto.descricao, produto.qtdMinima, produto.quantidadeTotal);
+                    }
+                    else
+                    {
+                        fprintf(tempFile, "%d|%s|%d|%d \n", produto.codigo, produto.descricao, produto.qtdMinima, produto.quantidadeTotal);
+                    }
+                }
+
+                fclose(tempFile);
+                fclose(arquivo);
+                substituirArquivo();
+                printf(VERDE"Compra cadastrada com sucesso! \n"RESET);
+                system("pause");
+                system("cls");
+                compra();
+            }
+
+            if(!encontrado)
+            {
+                printf(VERMELHO"Produto n�o encontrado!\n"RESET);
+                printf(VERMELHO"N�o foi possivel realizar a compra!\n"RESET);
+                fclose(arquivo);
+                menuProduto();
+                system("pause");
+            }
+
+    //Verificar uma compra de um produto
+    case 2:
+        printf("Verificar as compras de um produto \n\n");
+        printf("Digite o c�digo do produto: ");
+        scanf("%d",&codigo);
+
+        // Abrir o arquivo para leitura
+        arquivo = fopen("ProdutosCompra.txt", "r");
+        if (arquivo == NULL)
+        {
+            printf(VERMELHO"N�o foi poss�vel abrir o arquivo.\n"RESET);
+            system("pause");
+            compra();
+        }
+
+        //validar para ver se o produto existe
+        while (fscanf(arquivo, "%d|%49[^|]|%d|%f|%d/%d/%d - Compra \n", &produto.codigo, produto.descricao, &produto.qtdDesejada, &produto.valorCompra, &produto.dataCompra.dia, &produto.dataCompra.mes, &produto.dataCompra.ano) != EOF)
+        {
+            //exibir todos os produtos com o codigo digitado
+            if (codigo == produto.codigo)
+            {
+                system("cls");
+                header();
+                gotoxy(68, 6);
+                printf(AZULCL"Menu Compra\n"RESET);
+                gotoxy(51, 7);
+                printf("\n");
+                printf("Compras do produto \n\n");
+                printf("Codigo do produto: %d \n", codigo);
+                printf("Descri��o: %s \n", produto.descricao);
+                printf("Quantidade Comprada: %d \n", produto.qtdDesejada);
+                printf("Valor de Compra: %.2f \n", produto.valorCompra);
+                printf("Data da Compra: %d/%d/%d \n", produto.dataCompra.dia, produto.dataCompra.mes, produto.dataCompra.ano);
+                system("pause");
+                encontrado = 1;
+                conta++;
+            }
+        }
+        if(encontrado == 0)
+        {
+            printf(VERMELHO" Produto n�o encontrado! \n"RESET);
+            system("pause");
+            compra();
+        }
+        fclose(arquivo);  // Fechar o arquivo ap�s a leitura
+
+        if(encontrado == 1)
+        {
+            system("cls");
+            header();
+            gotoxy(68, 6);
+            printf(AZULCL"Menu Compra\n"RESET);
+            gotoxy(51, 7);
+            printf(VERDE" Compras do produto \n\n"RESET);
+            printf("Foi realizada %d compras deste produto! \n", conta);
+            system("pause");
+            main();
+        }
+        else
+        {
+            printf(VERMELHO"Produto n�o encontrado!\n"RESET);
+            system("pause");
+            main();
+        }
+        break;
+
+    //volta para o menu principal
+    case 3:
+        main();
+        break;
+
+    default:
+        printf(VERMELHO"Op��o inv�lida!"RESET);
+        system("pause");
+        break;
+    }
+}
+
+void inventario()
+{
+    system("cls");
+    header(); //Chama a fun��o que imprime o cabe�alho
+
+    struct Produto produto;
+    int encontrado = 0, subtraiProduto;
+    int conta = 0;
+    int opcao, codigo; //Vari�vel que vai permitir encaminhar para outros menus
+    FILE *arquivo; //Ponteiro para o arquivo estoque.txt
+    arquivo = fopen("Produtos.txt", "r+"); //Abre o arquivo estoque.txt para escrita
+
+    if(arquivo == NULL)
+    {
+        printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);
+        exit(1);
+    }
+
+    gotoxy(68, 6);
+    printf(AZULCL"Menu Invent�rio\n"RESET);
+    gotoxy(51, 7);
+    printf("Escolha uma das op��es abaixo para prosseguir:\n\n");
+
+    //Menu de Invent�rio
+    do
+    {
+        printf("1 - Entrar com um invent�rio\n");
+        printf("2 - Verificar invent�rio de um produto\n");
+        printf("3 - Voltar menu principal\n\n");
+        printf("Digite a op��o: ");
+        scanf(" %d", &opcao);
+        system("cls");
+        header();
+        gotoxy(68, 6);
+        printf(AZULCL"Menu Invent�rio\n"RESET);
+        gotoxy(51, 7);
+        printf("Escolha uma das op��es abaixo para prosseguir:\n\n");
+    }while(opcao != 1 && opcao != 2 && opcao != 3);
+
+    switch(opcao)
+    {
+        //entra com um invent�rio
+        case 1:
+            printf("Entrar com um Invent�rio de Produto\n\n");
+            printf("Digite o c�digo do produto: ");
+            scanf(" %d",&codigo);
+
+            // Abrir o arquivo para leitura
+            arquivo = fopen("Produtos.txt", "r");
+            if (arquivo == NULL)
+            {
+                printf(VERMELHO"N�o foi poss�vel abrir o arquivo.\n"RESET);
+                main();
+            }
+
+            //validar para ver se o produto existe
+            while (fscanf(arquivo, "%d|%49[^|]|%d|%d \n", &produto.codigo, produto.descricao, &produto.qtdMinima, &produto.quantidadeTotal) != EOF)
+            {
+                if (codigo == produto.codigo)
+                {
+                    printf(VERDE"O produto Existe! \n\n"RESET);
+                    printf("Informa��es do produto:\n\n");
+                    printf("C�digo do produto: %d \n", codigo);
+                    printf("Descri��o: %s \n", produto.descricao);
+                    printf("Quantidade Maxima permitida para retirada: %d \n", produto.quantidadeTotal);
+                    printf("Quantidade Retirada: ");
+                    scanf(" %d", &produto.qtdDesejada);
+                    //validar para ver se a quantidade desejada � maior que a quantidade total
+                    //se for maior, o programa volta para o menu principal
+                    if(produto.qtdDesejada > produto.quantidadeTotal)
+                    {
+                        printf(VERMELHO"Quantidade maior que o permitido! \n"RESET);
+                        system("pause");
+                        system("cls");
+                        fclose(arquivo);
+                        inventario();
+                    }
+                    printf("Valor de Venda: ");
+                    scanf("%f", &produto.valorVenda);
+                    printf("Dia do Invent�rio: ");
+                    scanf(" %d", &produto.dataVenda.dia);
+                    printf("M�s da Invent�rio: ");
+                    scanf(" %d", &produto.dataVenda.mes);
+                    printf("Ano da Invent�rio: ");
+                    scanf(" %d", &produto.dataVenda.ano);
+                    encontrado = 1;
+                    break;  // Sair do loop se o produto for encontrado
+                }
+            }
+
+            fclose(arquivo);  // Fechar o arquivo ap�s a leitura
+
+            if(encontrado == 1)
+            {
+                // Abrir o arquivo para escrita
+                arquivo = fopen("ProdutosInventario.txt", "a");
+                if (arquivo == NULL)
+                {
+                    printf(VERMELHO"N�o foi poss�vel abrir o arquivo Produtos Invent�rio.\n"RESET);
+                    system("pause");
+                    system("cls");
+                    inventario();
+                }
+
+                subtraiProduto = produto.qtdDesejada;
+                fprintf(arquivo, "%d|%s|%d|%f|%d/%d/%d - Inventario \n", codigo, produto.descricao, produto.qtdDesejada, produto.valorVenda, produto.dataVenda.dia, produto.dataVenda.mes, produto.dataVenda.ano);
+                fclose(arquivo);  // Fechar o arquivo ap�s a escrita
+
+                printf(VERDE"Produto Inventariado com sucesso! \n"RESET);
+                system("pause");
+                //system("cls");
+                arquivo = fopen ("Produtos.txt", "r+");
+                FILE *tempFile = fopen("temp.txt", "w"); // Limpa arquivo temporario
+                if((arquivo = fopen("Produtos.txt", "r+")) == NULL)
+                {
+                    printf(VERMELHO"N�o foi poss�vel abrir o arquivo Produtos Invent�rio.\n"RESET);
+                    system("pause");
+                    system("cls");
+                    inventario();
+                }
+
+                while (fscanf(arquivo, "%d|%49[^|]|%d|%d \n", &produto.codigo, produto.descricao, &produto.qtdMinima, &produto.quantidadeTotal) != EOF)
+                {
+                    if (codigo == produto.codigo) // encontra o produto e realiza a subtra�ao do produto no estoque
+                    {
+                        produto.quantidadeTotal = produto.quantidadeTotal - subtraiProduto;
+                        fprintf(tempFile, "%d|%s|%d|%d \n", produto.codigo, produto.descricao, produto.qtdMinima, produto.quantidadeTotal);
+                    }
+                    else
+                    {
+                        fprintf(tempFile, "%d|%s|%d|%d \n", produto.codigo, produto.descricao, produto.qtdMinima, produto.quantidadeTotal);
+                    }
+                }
+                fclose(tempFile);
+                fclose(arquivo);
+                substituirArquivo();
+                printf(VERDE"Invent�rio alterado com sucesso! \n"RESET);
+                inventario();
+            }
+            else
+            {
+                printf(VERMELHO"Produto n�o encontrado!\n"RESET);
+                system("pause");
+                system("cls");
+                inventario();
+            }
+            break;
+
+        //verifica um invent�rio
+        case 2:
+            printf("Verificar um Invent�rio\n\n");
+            printf("Digite o c�digo do produto: ");
+            scanf(" %d",&codigo);
+
+            // Abrir o arquivo para leitura
+            arquivo = fopen("ProdutosInventario.txt", "r");
+            if (arquivo == NULL)
+            {
+                printf(VERMELHO"N�o foi poss�vel abrir o arquivo.\n"RESET);
+                system("pause");
+                inventario();
+            }
+
+            //le todos os produtos do arquivo inventario.txt
+            while (fscanf(arquivo, "%d|%49[^|]|%d|%f|%d/%d/%d - Inventario \n", &produto.codigo, produto.descricao, &produto.qtdDesejada, &produto.valorVenda, &produto.dataVenda.dia, &produto.dataVenda.mes, &produto.dataVenda.ano) != EOF)
+            {
+                //exibir todos os produtos com o c�digo digitado
+                if (codigo == produto.codigo)
+                {
+                    system("cls");
+                    header();
+                    gotoxy(62, 6);
+                    printf(VERDE"Produto  cadastrado no invent�rio \n\n"RESET);
+                    printf("Informa��es do produto:\n\n");
+                    printf("C�digo do produto: %d \n", codigo);
+                    printf("Descri��o: %s \n", produto.descricao);
+                    printf("Quantidade invent�rio: %d \n", produto.qtdDesejada);
+                    printf("Valor de invent�rio: %.2f \n", produto.valorVenda);
+                    printf("Dia do invent�rio: %d \n", produto.dataVenda.dia);
+                    printf("Mes do invent�rio: %d \n", produto.dataVenda.mes);
+                    printf("Ano do invent�rio: %d \n", produto.dataVenda.ano);
+                    system("pause");
+                    system("cls");
+                    encontrado = 1;
+                    conta++;
+                }
+            }
+
+            fclose(arquivo);  // Fechar o arquivo ap�s a leitura
+            if(encontrado == 1)
+            {
+                system("cls");
+                header();
+                gotoxy(62, 6);
+                printf(VERDE"Produto  cadastrado no invent�rio \n\n"RESET);
+                printf("Tem %d vendas deste produto! \n", conta);
+                system("pause");
+                inventario();
+            }
+            else
+            {
+                system("cls");
+                header();
+                gotoxy(62, 6);
+                printf(VERMELHO"Produto n�o encontrado!\n"RESET);
+                system("pause");
+                main();
+            }
+            break;
+
+        //volta para o menu principal
+        case 3:
+            main();
+            break;
+
+        //encerra o programa
+        default:
+            printf(VERMELHO"Op��o inv�lida!"RESET);
+            exit(1);
+            break;
+    }
+}
+
+void gerarRelatorio()
+{
+    system("cls");
+    header();
+
+    struct Produto produto;
+    int encontrado = 0, opcao, codigo;
+    FILE *arquivo = fopen("Produtos.txt", "r+");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo.\n");
+        system("pause");
+        main();
+    }
+    gotoxy(68, 6);
+    printf(AZULCL"Menu Relat�rio\n"RESET);
+    gotoxy(51, 7);
+    printf("Escolha uma das op��es abaixo para prosseguir:\n\n");
+
+    do
+    {
+        printf("1 - Relat�rio de estoque atual \n");
+        printf("2 - Relat�rio de um produto especifico \n");
+        printf("3 - Relat�rio de todos os produtos em .csv \n");
+        printf("4 - Relat�rio de todas as compras em .csv \n");
+        printf("5 - Relat�rio de todas os invent�rio em .csv  \n");
+        printf("6 - Voltar menu principal\n\n");
+        printf("Digite a op��o: ");
+        scanf(" %d", &opcao);
+
+        system("cls");
+        header();
+        gotoxy(68, 6);
+        printf(AZULCL"Menu Produto\n"RESET);
+        gotoxy(51, 7);
+        printf("Escolha uma das op��es abaixo para prosseguir:\n");
+    }while(opcao !=1 && opcao !=2 && opcao !=3 && opcao !=4 && opcao !=5 && opcao !=6 );
+
+    switch(opcao)
+    {
+
+        // Relat�rio do estoque atual
+        case 1:
+            system("cls");
+            header();
+            gotoxy(68, 6);
+
+            FILE *arquivo;
+            arquivo = fopen ("Produtos.txt", "r+");
+            if((arquivo = fopen("Produtos.txt", "r+")) == NULL)
+            {
+                printf(VERMELHO" Produto n�o encontrado! \n"RESET);
+                exit(1);
+            }
+
+            gotoxy(60, 6);
+            printf("Relat�rio de estoque atual\n");
+            system("cls");
+            //ler o arquivo e procura os produtos
+            while (fscanf(arquivo, "%d|%49[^|]|%d|%d", &produto.codigo, produto.descricao, &produto.quantidadeTotal, &produto.qtdMinima) != EOF)
+            {
+                header();
+                gotoxy(60, 6);
+                printf("Relat�rio de estoque Atual \n");
+                printf("C�digo: %d \n", produto.codigo);
+                printf("Descri��o: %s \n", produto.descricao);
+                printf("Quantidade Total de estoque: %d \n", produto.quantidadeTotal);
+                printf("Quantidade M�nima: %d \n", produto.qtdMinima);
+                printf("\n\n");
+                system("pause");
+                system("cls");
+                encontrado = 1;
+            }
+
+            system("pause");
+            system("cls");
+
+            if(!encontrado)
+            {
+                gotoxy(68, 6);
+                printf(VERMELHO"Produto n�o encontrado!\n"RESET);
+                system("pause");
+                fclose(arquivo);
+                menuProduto();
+            }
+            fclose(arquivo);
+            gerarRelatorio();
+            break;
+
+        // Relat�rio de um produto especifico
+        case 2:
+            system("cls");
+            header();
+            gotoxy(68, 6);
+            printf("Relat�rio de um produto especifico \n");
+            printf("Entre com o c�digo do produto desejado: ");
+            scanf(" %d", &codigo);
+
+            if((arquivo = fopen("Produtos.txt", "r+")) == NULL)
+            { //verifica para criar o arquivo
+                printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);
+                exit(1);
+            }
+
+            system("cls");
+            //ler o arquivo e procurar o codigo
+            while(fscanf(arquivo, "%d|%49[^|]|%d|%d \n", &produto.codigo, produto.descricao, &produto.qtdMinima, &produto.quantidadeTotal) != EOF)
+            {
+                if (codigo == produto.codigo)
+                {
+                    printf("----------------------------------------\n");
+                    printf("Relat�rio do produto %d \n", codigo);
+                    printf("C�digo do produto: %d \n", codigo);
+                    printf("Descri��o: %s \n", produto.descricao);
+                    printf("Quantidade Total: %d \n", produto.qtdMinima);
+                    printf("Quantidade M�nima: %d \n", produto.quantidadeTotal);
+                    printf("----------------------------------------\n");
+                    //analisar o tempo que o produto ficou em estoque
+                    //printf("tempo que o produto ficou no estoque: %d \n", produto.dataCompra.dia - produto.dataVenda.dia);
+                    encontrado = 1;
+                }
+            }
+
+            arquivo = fopen ("ProdutosCompra.txt", "r+");
+            while(fscanf(arquivo, "%d|%49[^|]|%d|%f|%d/%d/%d - Compra \n", &produto.codigo, produto.descricao, &produto.qtdDesejada, &produto.valorCompra, &produto.dataCompra.dia, &produto.dataCompra.mes, &produto.dataCompra.ano) != EOF)
+            {
+                if (codigo == produto.codigo)
+                {
+
+                    printf("----------------------------------------\n");
+                    printf("Quantidade Comprada: %d \n", produto.qtdDesejada);
+                    printf("Valor de Compra: %.2f \n", produto.valorCompra);
+                    printf("Data da Compra: %d/%d/%d \n", produto.dataCompra.dia, produto.dataCompra.mes, produto.dataCompra.ano);
+                    printf("----------------------------------------\n");
+                    encontrado = 1;
+                }
+            }
+
+            arquivo = fopen ("ProdutosInventario.txt", "r+");
+            while (fscanf(arquivo, "%d|%49[^|]|%d|%f|%d/%d/%d - Inventario \n", &produto.codigo, produto.descricao, &produto.qtdDesejada, &produto.valorVenda, &produto.dataVenda.dia, &produto.dataVenda.mes, &produto.dataVenda.ano) != EOF)
+            {
+                if (codigo == produto.codigo)
+                {
+                    printf("----------------------------------------\n");
+                    printf("Quantidade invent�rio: %d \n", produto.qtdDesejada);
+                    printf("Valor de invent�rio: %.2f \n", produto.valorVenda);
+                    printf("Data do invent�rio: %d/%d/%d \n", produto.dataVenda.dia, produto.dataVenda.mes, produto.dataVenda.ano);
+                    //Analisar forma de obter lucro por produtos vendidos
+                    //printf("Lucro obtido com as vendas: %d \n", produto.valorVenda - produto.valorCompra);
+                    printf("----------------------------------------\n");
+                    encontrado = 1;
+                    system("pause");
+                    printf("\n\n");
+                }
+            }
+
+            if(encontrado == 1)
+            {
+                printf(VERDE"Relat�rio do produto gerado com sucesso! \n"RESET);
+                system("pause");
+                gerarRelatorio();
+            }
+
+            else
+            {
+                printf(VERMELHO"Relat�rio do produto n�o gerado! \n"RESET);
+                system("pause");
+                gerarRelatorio();
+            }
+
+            fclose(arquivo);
+            break;
+
+        //Relat�rio de produtos em .csv
+        case 3:
+            system("cls");
+            header();
+            gotoxy(59, 6);
+            printf("Relat�rio de todas os produtos em .CSV\n");
+            FILE *csv = fopen("RelatorioProdutos.csv", "w"); //ponteiro para a estrutura file pto o arquivo RelatorioCompras.csv
+            if(csv == NULL)
+            {
+                printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);
+                system("pause");
+                gerarRelatorio();
+            }
+
+            if((arquivo = fopen("Produtos.txt", "r+")) == NULL)
+            { //verifica para criar o arquivo
+                printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);   
+                system("pause");
+                gerarRelatorio();
+            }
+
+            // Insere um cabe�alho no arquivo csv
+            fprintf(csv, "Codigo;Descricao;Quantidade Minima;Quantidade em estoque \n");
+            while(fscanf(arquivo, "%d|%49[^|]|%d|%d \n", &produto.codigo, produto.descricao, &produto.qtdMinima, &produto.quantidadeTotal) != EOF)
+            {
+                fprintf(csv, "%d;%s;%d;%d \n", produto.codigo, produto.descricao, produto.qtdMinima, produto.quantidadeTotal);
+                encontrado = 1;
+            }
+            fclose(csv);
+            fclose(arquivo);
+            system("pause");
+            if(encontrado == 1)
+            {
+                // No excel 365 n�o precisa fazer nada ele ja separa os campos do arquivo automaticamente pelo ;
+                // Para abrir este arquivo no excel tem que
+                // separar os campos por ponto e virgula
+                // No menu superior Dados -> Ferramentas de Dados
+                // Selecione a primeira Colula e clique em texto para colunas
+                // Abrira uma janela clique em delimitador e em avan�ar
+                // Selecione o checkBox virgula e clique em avan�ar e concluir
+                printf(VERDE"Relat�rio de produtos gerado com sucesso! \n"RESET);
+                system("pause");
+                gerarRelatorio();
+            }
+
+            else
+            {
+                printf(VERMELHO"Relat�rio de produtos n�o gerado! \n"RESET);
+                system("pause");
+                gerarRelatorio();
+            }
+            break;
+
+        //Relatorio de compras em .csv
+        case 4:
+            system("cls");
+            header();
+            gotoxy(59, 6);
+            printf("Relat�rio de todas as compras em .CSV\n");
+            FILE *csvCompras = fopen("RelatorioCompras.csv", "w"); //ponteiro para a estrutura file pto o arquivo RelatorioCompras.csv
+            if(csvCompras == NULL)
+            {
+                printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);
+                system("pause");
+                main();
+            }
+
+            if((arquivo = fopen("ProdutosCompra.txt", "r+")) == NULL)
+            { //verifica para criar o arquivo
+                printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);
+                system("pause");
+                main();
+            }
+
+            // Insere um cabe�alho no arquivo csv
+            fprintf(csvCompras, "Codigo;Descricao;Quantidade Comprada;Valor de Compra;Data da Compra \n");
+            while(fscanf(arquivo, "%d|%49[^|]|%d|%f|%d/%d/%d - Compra \n", &produto.codigo, produto.descricao, &produto.qtdDesejada, &produto.valorCompra, &produto.dataCompra.dia, &produto.dataCompra.mes, &produto.dataCompra.ano) != EOF)
+            {
+                fprintf(csvCompras, "%d;%s;%d;%.2f;%d/%d/%d \n", produto.codigo, produto.descricao, produto.qtdDesejada, produto.valorCompra, produto.dataCompra.dia, produto.dataCompra.mes, produto.dataCompra.ano);
+                encontrado = 1;
+            }
+            fclose(csvCompras);
+            fclose(arquivo);
+            system("pause");
+            if(encontrado == 1)
+            {
+                // No excel 365 n�o precisa fazer nada ele ja separa o arquivo automaticamente
+                // Para abrir este arquivo no excel tem que
+                // separar os campos por ponto e virgula
+                // No menu superior Dados -> Ferramentas de Dados
+                // Selecione a primeira Colula e clique em texto para colunas
+                // Abrira uma janela clique em delimitador e em avan�ar
+                // Selecione o checkBox virgula e clique em avan�ar e concluir
+                printf(VERDE"Relat�rio de compras gerado com sucesso! \n"RESET);
+                system("pause");
+                gerarRelatorio();
+            }
+
+            else
+            {
+                printf(VERMELHO"Relat�rio de compras n�o gerado! \n"RESET);
+                system("pause");
+                gerarRelatorio();
+            }
+            break;
+
+        // Relat�rio de invent�rio em .csv
+        case 5:
+            system("cls");
+            header();
+            gotoxy(59, 6);
+            printf("Relat�rio de todos os invent�rio em .CSV\n");
+
+            FILE *csvInventario = fopen("RelatorioInventario.csv", "w");
+            if(csvInventario == NULL)
+            {
+                printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);
+                exit(1);
+            }
+
+            if((arquivo = fopen("ProdutosInventario.txt", "r+")) == NULL)
+            {
+                printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);
+                exit(1);
+            }
+
+            // Insere um cabe�alho no arquivo csv
+            fprintf(csvInventario, "Codigo;Descricao;Quantidade Inventario;Valor de venda;Data da Compra \n");
+            while(fscanf(arquivo, "%d|%49[^|]|%d|%f|%d/%d/%d - Inventario \n", &produto.codigo, produto.descricao, &produto.qtdDesejada, &produto.valorCompra, &produto.dataCompra.dia, &produto.dataCompra.mes, &produto.dataCompra.ano) != EOF)
+            {
+                fprintf(csvInventario, "%d;%s;%d;%.2f;%d/%d/%d \n", produto.codigo, produto.descricao, produto.qtdDesejada, produto.valorCompra, produto.dataCompra.dia, produto.dataCompra.mes, produto.dataCompra.ano);
+                encontrado = 1;
+            }
+            fclose(csvInventario);
+            fclose(arquivo);
+            system("pause");
+            if(encontrado == 1)
+            {
+                // No excel 365 n�o precisa fazer nada ele ja separa o arquivo automaticamente
+                // Para abrir este arquivo no excel tem que
+                // separar os campos por ponto e virgula
+                // No menu superior Dados -> Ferramentas de Dados
+                // Selecione a primeira Colula e clique em texto para colunas
+                // Abrira uma janela clique em delimitador e em avan�ar
+                // Selecione o checkBox virgula e clique em avan�ar e concluir
+                printf(VERDE"Relat�rio de invent�rio gerado com sucesso! \n"RESET);
+                system("pause");
+                gerarRelatorio();
+            }
+
+            else
+            {
+                printf(VERMELHO"Relat�rio de invent�rio n�o gerado! \n"RESET);
+                system("pause");
+                gerarRelatorio();
+            }
+            break;
+
+        //volta para o menu principal
+        case 6:
+            main();
+            break;
+
+        //encerra o programa
+        default:
+            printf(VERMELHO"Op��o inv�lida!"RESET);
+            exit(1);
+            break;
+    }
+}
+
+void tutorial()
+{
+    system("cls");
+    header();
+    gotoxy(56, 6);
+    printf("Bem Vindo (a) ao Tutorial do OptiStock\n\n");
+
+    gotoxy(62, 7);
+    printf("O programa possui 6 menus:\n\n");
+    printf("1 - Menu Produto \n");
+    printf("2 - Menu Compra \n");
+    printf("3 - Menu Estoque \n");
+    printf("4 - Menu Invent�rio \n");
+    printf("5 - Menu Relat�rio \n");
+    printf("6 - Menu Tutorial \n");
+
+    system("pause");
+    system("cls");
+
+    header();
+    gotoxy(56, 6);
+    printf("Bem Vindo(a) ao Tutorial OptiStock\n\n");
+    gotoxy(65, 7);
+    printf(AZULCL"1 - Menu Produto\n\n"RESET);
+    printf("Este menu serve para ver, editar ou apagar os dados dos produtos.\n");
+    printf("Ao selecionar a op��o 1 - Procurar Produto, voc�  deve  inserir o c�digo do produto que deseja procurar. \n");
+    printf("O programa ira exibir os dados do produto solicitado. \n");
+    printf("Ao selecionar a op��o 2 - Editar um produto, voc�  dever  inserir o c�digo do produto que deseja editar. \n");
+    printf("O programa ira exibir os dados do produto solicitado. \n");
+    printf("Voc�  devera  inserir os novos dados do produto. \n");
+    printf("Ao selecionar a op��o 3 - Criar um produto, voc�  devera  inserir os dados do novo produto. \n");
+    system("pause");
+    system("cls");
+
+//-------------------------------------------------------------------------------------------------------------------//
+
+    header();
+    gotoxy(56, 6);
+    printf("Bem Vindo (a) ao Tutorial OptiStock\n\n");
+    gotoxy(65, 7);
+    printf(AZULCL"2 - Menu Compra \n\n"RESET);
+    printf("Este menu serve para entrar com uma compra ou verificar uma compra.\n");
+    printf("Ao selecionar a op��o 1 - Entrar com uma compra, voc�  devera  inserir o c�digo do produto que deseja realizar a compra. \n");
+    printf("O programa ira exibir os dados do produto solicitado. \n");
+    printf("Voc�  devera  inserir os dados da compra. \n");
+    printf("Ao selecionar a op��o 2 - Verificar uma compra, voc�  devera  inserir o c�digo do produto que deseja verificar todas as compra. \n");
+    printf("O programa ira exibir o hist�rico de todas as compras do produto solicitado. \n");
+    system("pause");
+    system("cls");
+
+//-------------------------------------------------------------------------------------------------------------------//
+
+    header();
+    gotoxy(56, 6);
+    printf("Bem Vindo (a) ao Tutorial OptiStock\n\n");
+    gotoxy(63, 7);
+    printf(AZULCL"4 - Menu Invent�rio\n\n"RESET);
+    printf("Este menu serve para alterar a quantidade de produtos do estoque.\n");
+    printf("Ao selecionar a op��o 1 - Entrar com um invent�rio, voc� devera inserir o c�digo do produto que deseja realizar invent�rio.\n\n");
+    printf("Ao selecionar a op��o 2 - Verificar um invent�rio, voc� devera inserir o c�digo do produto que deseja verificar.\n");
+    system("pause");
+    system("cls");
+
+//----------------------------------------------------------------------------------
+
+    header();
+    gotoxy(56, 6);
+    printf("Bem Vindo (a) ao Tutorial OptiStock\n\n");
+    gotoxy(64, 7);
+    printf(AZULCL"5 - Menu Relat�rio\n\n"RESET);
+    printf("Este menu serve para gerar relat�rios do estoque.\n");
+    printf("Ao selecionar a op��o 1 - Relat�rio de estoque atual, \n");
+    printf("o programa ira exibir todos os produtos cadastrados.\n\n");
+    printf("Ao selecionar a op��o 2 - Relat�rio de um produto especifico, \n");
+    printf("o programa ira exibir os dados do produto solicitado.\n\n");
+    printf("Ao selecionar a op��o 3 - Relat�rio de todos os produtos em .csv, \n");
+    printf("o programa ira gerar um arquivo .csv com todos os produtos cadastrados.\n\n");
+    printf("Ao selecionar a op��o 4 - Relat�rio de todas as compras em .csv, \n");
+    printf("o programa ira gerar um arquivo .csv com todas as compras cadastradas.\n\n");
+    printf("Ao selecionar a op��o 5 - Relat�rio de todas os invent�rio em .csv, \n");
+    printf("o programa ira gerar um arquivo .csv com todas os invent�rio cadastradas.\n\n");
+    printf("Observa�ao importante: \n");
+    printf("Para abrir os arquivos .csv no excel, \n");
+    printf("selecione a primeira coluna A e clique em texto para colunas, \n");
+    printf("Ira abrir uma janela, selecione o checkBox virgula e clique em avan�ar e concluir.\n\n");
+    printf("O arquivo .csv fica salvo na pasta do programa.\n\n");
+    system("pause");
+    system("cls");
+
+//--------------------------------------------------------------------------
+
+    header();
+    gotoxy(56, 6);
+    printf("Bem Vindo (a) ao Tutorial OptiStock\n\n");
+    gotoxy(65, 7);
+    printf(AZULCL"6 - Menu Tutorial\n\n"RESET);
+    printf("Caso queira visualizar o tutorial novamente, basta acessar\n");
+    system("pause");
+    system("cls");
+    main();
+//------------------------------------------------------------------------------
+}
+
+void testaArquivo()
+{
+    FILE *arquivo; //ponteiro para a estrutura file
+    arquivo = fopen ("Produtos.txt", "r+");
+    if((arquivo = fopen("Produtos.txt", "r+")) == NULL)
+    {
+        printf(VERMELHO"O arquivo n�o pode ser aberto. \n"RESET);
+        exit(1);
+    }
+    else
+    {
+        printf(VERDE"\n Arquivo de Estoque aberto com sucesso.\n"RESET);
+        /*system("pause");*/
+        system("cls");
+    }
+    fclose(arquivo);
+}
+
+// Fun��o para substituir o arquivo temporario para o arquivo original
+void substituirArquivo()
+{
+    FILE *arquivo, *tempFile;
+    arquivo = fopen ("Produtos.txt", "w"); // Limpa o arquivo
+    arquivo = fopen ("Produtos.txt", "a"); // Abre o arquivo para escrita
+    char ch;
+    tempFile = fopen("temp.txt", "r");
+    while ((ch = fgetc(tempFile)) != EOF)
+    {
+        // Escreva cada caractere no arquivo Produto.txt
+        fputc(ch, arquivo);
+    }
+    //printf("Arquivo copiado com sucesso.\n");
+    fclose(arquivo);
+    tempFile = fopen ("temp.txt", "w"); // Limpa o arquivo temporario
+    fclose(tempFile);
+    /*system("pause");*/
+}
+
+int header()
+{
+    //design(200, 170);
+    gotoxy(0, 0);
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    gotoxy(69, 2);
+    printf("OptiStock\n");
+    gotoxy(0, 4);
+    printf("----------------------------------------------------------------------------------------------------------------------------------------------------\n");
+    return 0;
+}
+
+void gotoxy(int x, int y)
+{
+    COORD pos = {x, y};
+    HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleCursorPosition(output, pos);
+}
