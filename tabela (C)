@@ -1,3 +1,4 @@
+//Bibliotecas usadas no projeto
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
@@ -5,6 +6,7 @@
 #include <time.h>
 #include <string.h>
 
+//Definições de cores
 #define VERDE "\033[0;32m"
 #define AMARELO "\033[0;33m"
 #define VERMELHO "\033[0;31m"
@@ -13,7 +15,7 @@
 #define AZULESC "\x1B[34m"
 
 
-
+//Protótipos das funções usadas no código
 void verifica();
 void salvaCliente();
 void excluirCliente();
@@ -24,6 +26,7 @@ void procurarCliente();
 int header();
 int gotoxy(int x, int y);
 
+//Struct para trabalhar com datas atuais
 typedef struct
 {
     int tm_sec;
@@ -37,6 +40,7 @@ typedef struct
     int tm_isdst;
 } tm;
 
+//Struct para armazenar datas
 typedef struct
 {
     int dia;
@@ -44,6 +48,7 @@ typedef struct
     int ano;
 } data;
 
+//Struct para armazenar as informações do cliente
 typedef struct
 {
     char nome_Cliente[128];
@@ -55,17 +60,23 @@ typedef struct
 
 int main(double numero_Projeto)
 {
+    //Para aceitar acentuação da idioma do sistema
     setlocale(LC_ALL, "");
 
+    //Comandas para tela cheia
     keybd_event (VK_MENU, 0x36, 0, 0);
     keybd_event (VK_RETURN, 0x1C, 0, 0);
     keybd_event (VK_RETURN, 0x1C, KEYEVENTF_KEYUP, 0);
     keybd_event (VK_MENU, 0x38, KEYEVENTF_KEYUP, 0);
 
+    //Definições de variáveis
     cliente Cliente;
     int validade;
+    int noventa = 90;
     FILE *arquivo;
     arquivo = fopen("Tabela.txt", "r+");
+
+    //Verifica se o arquivo abre corretamente
     if(arquivo == NULL)
     {
         printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
@@ -73,16 +84,20 @@ int main(double numero_Projeto)
         main_Dois(numero_Projeto);
     }
 
-    int noventa = 90;
-
+    //Chama as funções para o alerta e o menu principal
     print_alert(noventa, numero_Projeto, validade);
     main_Dois(numero_Projeto);
 }
 
 int main_Dois(double numero_Projeto)
 {
+    //Definições de variáveis
     FILE *arquivo;
+    cliente Cliente;
+    int condicao;
     arquivo = fopen("Tabela.txt", "r+");
+
+    //Verifica se o arquivo foi aberto corretamente
     if(arquivo = NULL)
     {
         printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
@@ -90,320 +105,443 @@ int main_Dois(double numero_Projeto)
         main_Dois(numero_Projeto);
     }
 
-    cliente Cliente;
-
+    //Comando para limpar a tela
     system("cls");
+    //Função que imprime o cabeçalho
     header();
-    gotoxy(85, 6);
+    //Função que leva o prompt para uma determinada coordenada (x, y)
+    gotoxy(67, 6);
     printf(VERMELHO"M"RESET AMARELO"e"RESET VERMELHO"n"RESET AMARELO"u"RESET VERMELHO" p"RESET AMARELO"r"RESET VERMELHO"i"RESET AMARELO"n"RESET VERMELHO"c"RESET AMARELO"i"RESET VERMELHO"p"RESET AMARELO"a"RESET VERMELHO"l"RESET"\n");
 
-    int condicao;
+    //Limpa o buffer do teclado
+    fflush(stdin);
 
-    while (condicao != 1 && condicao != 2 && condicao != 3 && condicao !=4 && condicao != 5 && condicao != 6)
+    //Laço de repetição para imprimir o menu principal
+    while (condicao != 1 && condicao != 2 && condicao != 3 && condicao !=4 && condicao != 5)
     {
         printf(VERMELHO"1- "RESET AMARELO"Adicionar novo cliente\n"RESET);
         printf(VERMELHO"2- "RESET AMARELO"Verificar a tabela de clientes\n"RESET);
-        printf(VERMELHO"3- "RESET AMARELO"Editar cliente\n"RESET);
-        printf(VERMELHO"4- "RESET AMARELO"Excluir um cliente\n"RESET);
-        printf(VERMELHO"5- "RESET AMARELO"Procurar cliente\n"RESET);
-        printf(VERMELHO"6- "RESET AMARELO"Encerrar o programa\n"RESET);
+        printf(VERMELHO"3- "RESET AMARELO"Excluir um cliente\n"RESET);
+        printf(VERMELHO"4- "RESET AMARELO"Procurar cliente\n"RESET);
+        printf(VERMELHO"5- "RESET AMARELO"Encerrar o programa\n"RESET);
         scanf("%d", &condicao);
 
-        if (condicao != 1 && condicao != 2 && condicao != 3 && condicao != 4 && condicao != 5 && condicao != 6)
+        //Laço de condição para o usuário entrar com a entrada correta
+        if (condicao != 1 && condicao != 2 && condicao != 3 && condicao != 4 && condicao != 5)
         {
+            //Comando para limpar a tela
             system("cls");
+            //Função que imprime o cabeçalho
             header();
-            gotoxy(85, 6);
+            //Leva o prompt para uma deteminada coordenada (x, y)
+            gotoxy(67, 6);
             printf(VERMELHO"M"RESET AMARELO"e"RESET VERMELHO"n"RESET AMARELO"u"RESET VERMELHO" p"RESET AMARELO"r"RESET VERMELHO"i"RESET AMARELO"n"RESET VERMELHO"c"RESET AMARELO"i"RESET VERMELHO"p"RESET AMARELO"a"RESET VERMELHO"l"RESET"\n");
             printf(VERMELHO"Opção inválida!\n"RESET);
         }
     }
 
+    //Laço de escolha para determinada entrada do usuário
     switch (condicao)
     {
     case 1:
+        //Chama a função que salva o cliente
         salvaCliente();
+        //Quebra o laço
         break;
 
     case 2:
+        //Chama a função que gera um csv
         verificaTabela(numero_Projeto);
+        //Quebra o laço
         break;
 
     case 3:
-        editarCliente(numero_Projeto);
+        //Chama a função que exclui um cliente
+        excluirCliente(numero_Projeto);
+        //Quebra o laço
         break;
 
     case 4:
-        excluirCliente(numero_Projeto);
+        //Chama a função que procura o cliente
+        procurarCliente(numero_Projeto);
+        //Quebra o laço
         break;
 
     case 5:
-        procurarCliente(numero_Projeto);
-        break;
-
-    case 6:
+        //Comando que limpa a tela
         system("cls");
+        //Função que imprime o cabeçalho
         header();
-        gotoxy(85, 6);
+        //Função que leva o prompt para um determinada coordenada (x, y)
+        gotoxy(69, 6);
 
         printf(VERMELHO"Encerrando...\n"RESET);
+        //Encerra o programa
+        exit(1);
+        //Quebra o laço
         break;
     }
 }
 
 void verifica(double numero_Projeto)
 {
+    //Definições de variáveis
     cliente Cliente;
     FILE *arquivo;
     arquivo = fopen("Tabela.txt", "r+");
+
+    //Condição que verifica se o arquivo foi aberto corretamente
     if (arquivo == NULL)
     {
+        //Função que imprime o cabeçalho
         header();
-        gotoxy(85, 6);
+        //Função que leva o prompt para uma determinada coordenada (x, y)
+        gotoxy(63, 6);
         printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        //Comando para pausar o programa, até uma tecla ser pressionada
         system("pause");
+        //Chama a função do menu principal
         main_Dois(numero_Projeto);
     }
 
+    //Laço de repetição para ler o arquivo "Tabela.txt"
     while (fscanf(arquivo, "%127[^|]|%lf|(%d)%lf|%d/%d/%d", Cliente.nome_Cliente, &Cliente.numero_Projeto, &Cliente.DDD, &Cliente.numero_Cliente, &Cliente.validade.dia, &Cliente.validade.mes, &Cliente.validade.ano) != EOF)
     {
+        //Limpa o buffer do teclado
         fflush(stdin);
+        //Laço de condição para verificar se o número de projeto entrado é igual ao número de projeto do arquivo
         if (numero_Projeto == Cliente.numero_Projeto)
         {
+            //Funçao que imprime o cabeçalho
             header();
-            gotoxy(85, 6);
+            //Função que leva o prompt para uma determinada coordenada (x, y)
+            gotoxy(63, 6);
             printf(VERMELHO"Projeto já cadastrado!\n"RESET);
+            //Comando para pausar o programa, até que uma tecla seja pressionada
             system("pause");
+            //Chama a função do menu principal
             main_Dois(numero_Projeto);
         }
     }
+    //Fecha o arquivo "Tabela.txt"
     fclose(arquivo);
 }
 
 void salvaCliente()
 {
+    //Comando para limpar a tela
     system("cls");
+    //Função que imprime o cabeçalho
     header();
-    gotoxy(85, 6);
+    //Função que leva o prompt para uma determinada coordenada (x, y)
+    gotoxy(67, 6);
     printf(VERMELHO"A"RESET AMARELO"d"RESET VERMELHO"i"RESET AMARELO"c"RESET VERMELHO"i"RESET AMARELO"o"RESET VERMELHO"n"RESET AMARELO"a"RESET VERMELHO"r"RESET AMARELO" c"RESET VERMELHO"l"RESET AMARELO"i"RESET VERMELHO"e"RESET AMARELO"n"RESET VERMELHO"t"RESET AMARELO"e"RESET "\n");
 
+    //Definções de variáveis
     char nome_Cliente[128];
+    int DDD;
     double numero_Projeto, numero_Cliente;
-    int DDD = 10;
     data validade;
-
     time_t mytime;
     mytime = time(NULL);
     struct tm tm = *localtime(&mytime);
 
+    //Lê e armazena o número de projeto
     printf(AMARELO"Número do projeto: "RESET);
     scanf("%lf", &numero_Projeto);
 
+    //Chama a função que verifica se o número de projeto já é cadastrado ou não
     verifica(numero_Projeto);
 
+    //Lê e armazena o nome do cliente
     printf(AMARELO"Nome do cliente: "RESET);
     scanf(" %127[^\n]", nome_Cliente);
 
     printf(AMARELO"Número de telefone do %s\n"RESET, nome_Cliente);
 
+    //Lê e armazena o DDD do cliente
     printf(AMARELO"DDD: "RESET);
     scanf("%d", &DDD);
 
+    //Laço de repetição que verifica se o DDD digitado está entre 11 e 99
     while(DDD > 99 || DDD < 11)
     {
         printf(VERMELHO"DDD inválido, o DDD deve estar entre 11 e 99"RESET);
+        //Lê e armazena o DDD do cliente
         printf(AMARELO"DDD: "RESET);
         scanf("%d", &DDD);
     }
 
+    //Lê e armazena o número do cliente
     printf(AMARELO"Número: "RESET);
     scanf("%lf", &numero_Cliente);
 
     printf(AMARELO"Data de validade\n"RESET);
+    //Lê e armazena o dia da data de validade
     printf(AMARELO"Dia: "RESET);
     scanf("%d", &validade.dia);
 
+    //Laço de repetição que verifica se o dia digitado está entre 1 e 31
     while(validade.dia > 31 || validade.dia < 1)
     {
         printf(VERMELHO"Dia inválido, o dia deve estar entre 1 e 31"RESET);
+        //Lê e armazena o dia da data de validade
         printf(AMARELO"Dia: "RESET);
         scanf("%d", &validade.dia);
     }
 
+    //Lê e armazena o mês da data de validade
     printf(AMARELO"Mês: "RESET);
     scanf("%d", &validade.mes);
 
-    while(validade.mes > 31 || validade.mes < 1)
+    //Laço de repetição que verifica se o mês digitado está entre 1 e 31
+    while(validade.mes > 12 || validade.mes < 1)
     {
         printf(VERMELHO"Mês inválido, o mês deve estar entre 1 e 31"RESET);
+        //Lê e armazena o mês da data de validade
         printf(AMARELO"Mês: "RESET);
         scanf("%d", &validade.mes);
     }
 
+    //Lê e armazena o ano da data de validade
     printf(AMARELO"Ano: "RESET);
     scanf("%d", &validade.ano);
 
+    //Laço de repetição que verifica se o ano digitado é maior ou igual ao ano atual
     while(validade.ano < (tm.tm_year + 1900))
     {
         printf(VERMELHO"Ano inválido, o ano deve ser maior que o atual"RESET);
+        //Lê e armazena o ano da data de validade
         printf(AMARELO"Ano: "RESET);
+        scanf("%d", &validade.ano);
     }
 
+    //Comando que limpa a tela
     system("cls");
 
+    //Definições e variáveis
     FILE *arquivo;
     arquivo = fopen("Tabela.txt", "r+");
+    //Laço de condição se verifica se o arquivo "Tabela.txt" foi aberto corretamente
     if (arquivo == NULL)
     {
+        //Comando que limpa a tela
         system("cls");
+        //Função que imprime o cabeçalho
         header();
-        gotoxy(85, 6);
+        //Função que leva o prompt para uma determinada coordernada (x, y)
+        gotoxy(63, 6);
         printf(VERMELHO "Erro ao abrir o arquivo!\n" RESET);
+        //Comando que pausa o programa, até uma tecla ser pressionada
         system("pause");
+        //Chama a função do menu principal
         main_Dois(numero_Projeto);
     }
-    /*fprintf(arquivo, "-> NOME DO CLIENTE|N PROJETO|N TELEFONE|VALIDADE\n");*/
+    //Fecha o arquivo "Tabela.txt"
     fclose(arquivo);
 
+    //Abre o arquivo
     arquivo = fopen("Tabela.txt", "a+");
+    //Verifica se o arquivo "Tabela.txt" foi aberto corretamente
     if (arquivo == NULL)
     {
+        //Comando que limpa a tela
         system("cls");
+        //Função que imprime o cabeçalho
         header();
-        gotoxy(85, 6);
+        //Função que leva o prompt para uma determinada coordenada (x, y)
+        gotoxy(63, 6);
         printf(VERMELHO "Erro ao abrir o arquivo!\n" RESET);
+        //Comando que pausa o arquivo até uma tecla ser pressionada
         system("pause");
+        //Chama a função do menu principal
         main_Dois(numero_Projeto);
     }
     else
     {
+        //Escreve as informções lidas e armazenadas no arquivo "Tabela.txt"
         fprintf(arquivo, "%s|%.0lf|(%d)%.0lf|%d/%d/%d", nome_Cliente, numero_Projeto, DDD, numero_Cliente, validade.dia, validade.mes, validade.ano);
+        //Fecha o arquivo "Tabela.txt"
         fclose(arquivo);
+        //Comando que limpa a tela
         system("cls");
+        //Função que imprime o cabeçalho
         header();
-        gotoxy(85, 6);
+        //Função que leva o prompt para uma determinada coordenada (x, y)
+        gotoxy(63, 6);
         printf(VERDE"Cliente salvo com sucesso\n"RESET);
+        //Chama a função do menu principal
         main_Dois(numero_Projeto);
     }
 }
 
 void verificaTabela(double numero_Projeto)
 {
+    //Definições de variáveis
     cliente Cliente;
     int encontrado;
     FILE *arquivo;
     FILE *csv;
     csv = fopen("TabelaExcel.csv", "w+");
+    arquivo = fopen("Tabela.txt", "r+");
+    //Laço de condição que verifica se o arquivo "TabelaExcel.csv" foi aberto corretamente
     if(csv == NULL)
     {
+        //Comando que limpa a tela
         system("cls");
+        //Função que imprime o cabeçalho
         header();
-        gotoxy(85, 6);
+        //Função que leva o prompt para uma determinada coordenada (x, y)
+        gotoxy(63, 6);
         printf(VERMELHO"Erro ao abrir o arquivo\n"RESET);
+        //Comando que pausa o programa, até uma tecla ser pressionada
         system("pause");
+        //Chama a função do menu principal
         main_Dois(numero_Projeto);
     }
-
-    arquivo = fopen("Tabela.txt", "r+");
+    //Laço de condiçao que verifica se o arquivo "Tabela.txt" foi aberto corretamente
     if(arquivo == NULL)
     {
+        //Comando que limpa a tela
         system("cls");
+        //Função que imprime o cabeçalho
         header();
-        gotoxy(85, 6);
+        //Função que leva o prompt para uma determinada coordenada (x, y)
+        gotoxy(63, 6);
         printf(VERMELHO"Erro ao abrir o arquivo\n"RESET);
+        //Comando que pausa o programa, até uma tecla ser pressionada
         system("pause");
+        //Chama a função do menu principal
         main_Dois(numero_Projeto);
     }
-
+    //Imprime, no arquivo "TabelaExcel.csv", um cabeçalho
     fprintf(csv, "NOME;Nº PROJETO; Nº TELEFONE; VALIDADE \n");
+    //Lê, do arquivo "Tabela.txt", o cabeçalho que foi impresso
     fscanf(arquivo, "NOME DO CLIENTE|Nº PROJETO|Nº TELEFONE|VALIDADE\n");
+    //Laço de repetição que lê o arquivo "Tabela.txt"
     while(fscanf(arquivo, "%127[^|]|%lf|(%d)%lf|%d/%d/%d \n", Cliente.nome_Cliente, &Cliente.numero_Projeto, &Cliente.DDD, &Cliente.numero_Cliente, &Cliente.validade.dia, &Cliente.validade.mes, &Cliente.validade.ano) != EOF)
     {
+        //Imprime, no arquivo "TabelaExcel.csv", o que foi lido no arquivo "Tabela.txt"
         fprintf(csv, "%s;%.0lf;(%d)%.0lf;%d/%d/%d \n", Cliente.nome_Cliente, Cliente.numero_Projeto, Cliente.DDD, Cliente.numero_Cliente, Cliente.validade.dia, Cliente.validade.mes, Cliente.validade.ano);
+        //Definição de uma variável
         encontrado = 1;
     }
+    //Fecha os arquivos "TabelaExcel.csv" e "Tabela.txt"
     fclose(csv);
     fclose(arquivo);
 
+    //Laço de condição que é executado se a variável "encontrado" for igual a 1
     if(encontrado == 1)
     {
         printf(VERDE"Arquivo gerado com sucesso!\n"RESET);
+        //Comando que pausa o programa, até uma tecla ser pressionada
         system("pause");
+        //Chama a função do menu principal
         main_Dois(numero_Projeto);
     }
     else
     {
         printf(VERMELHO"Erro ao gerar o arquivo!\n"RESET);
+        //Comando que pausa o programa, até uma tecla ser pressionada
         system("pause");
+        //Chama a função do menu principal
         main_Dois(numero_Projeto);
     }
 }
 
 void excluirCliente(double numero_Projeto)
 {
+    //Definições de variáveis
     int encontrado;
     double deleteCliente;
     cliente Cliente;
     FILE *arquivo;
+    arquivo = fopen("Tabela.txt", "r+");
+    FILE *temp;
+    temp = fopen("Temp.txt", "w");
 
+    //Comando que limpa a tela
     system("cls");
+    //Função que imprime o cabeçalho
     header();
-    gotoxy(85, 6);
+    //Função que leva o prompt até uma determinada coordenada (x, y)
+    gotoxy(67, 6);
     printf(VERMELHO"E"RESET AMARELO"x"RESET VERMELHO"c"RESET AMARELO"l"RESET VERMELHO"u"RESET AMARELO"i"RESET VERMELHO"r "RESET AMARELO"c"RESET VERMELHO"l"RESET AMARELO"i"RESET VERMELHO"e"RESET AMARELO"n"RESET VERMELHO"t"RESET AMARELO"e"RESET "\n");
 
+    //Lê e armazena o número de projeto a ser deletado
     printf(AMARELO"Qual o número do projeto a ser deletado: "RESET);
     scanf("%lf", &deleteCliente);
 
-    arquivo = fopen("Tabela.txt", "r+");
+    //Laço e repetição que verifica se o arquivo "Tabela.txt" foi aberto corretamente
     if(arquivo == NULL)
     {
+        //Comando que limpa a tela
         system("cls");
+        //Função que imprime o cabeçalho
         header();
-        gotoxy(85, 6);
+        //Função que leva o prompt até uma deterimanada coordenada (x, y)
+        gotoxy(63, 6);
         printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        //Comando que pausa o programa, até uma tecla ser pressionaa
         system("pause");
+        //Chama a função do menu principal
         main_Dois(numero_Projeto);
     }
 
-    FILE *temp;
-    temp = fopen("Temp.txt", "w");
+    //Laço de repetição que verifica se o arquivo "Temp.txt" foi aberto corretamente
     if(temp == NULL)
     {
+        //Comando que limpa a tela
         system("cls");
+        //Função que imprime o cabeçalho
         header();
-        gotoxy(85, 6);
+        //Função que leva o prompt até uma determinada coordernada
+        gotoxy(63, 6);
         printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        //Comando que pausa o programa, até uma tecla ser pressionada
         system("pause");
+        //Chama a função do menu principal
         main_Dois(numero_Projeto);
     }
 
+    //Laço de repetição que lê o arquivo "Tabela.txt"
     while(fscanf(arquivo, "%127[^|]|%lf|(%d)%lf|%d/%d/%d", Cliente.nome_Cliente, &Cliente.numero_Projeto, &Cliente.DDD, &Cliente.numero_Cliente, &Cliente.validade.dia, &Cliente.validade.mes, &Cliente.validade.ano) != EOF)
     {
+        //Laço de condição que é executado se o número de projeto digitado for diferente do lido no arquivo "Tabela.txt"
         if(deleteCliente != Cliente.numero_Projeto)
         {
+            //Imprime, no arquivo temporário "Temp.txt", o que foi lido no arquivo original "Tabela.txt"
             fprintf(temp, "%s|%.0lf|(%d)%.0lf|%d/%d/%d", Cliente.nome_Cliente, Cliente.numero_Projeto, Cliente.DDD, Cliente.numero_Cliente, Cliente.validade.dia, Cliente.validade.mes, Cliente.validade.ano);
         }
         else
         {
+            //Define a variável "encontrado" igual a 1
             encontrado = 1;
         }
     }
+    //Fecha os arquivos "Tabela.txt" e "Temp.txt"
     fclose(arquivo);
     fclose(temp);
 
-        if(encontrado == 1)
-        {
-            substituirArquivo();
-            printf(VERDE"Cliente excluído com sucesso!\n"RESET);
-            system("pause");
-            main_Dois(numero_Projeto);
-        }
-        else
-        {
-            printf(VERMELHO"Cliente não existe!\n"RESET);
-            system("pause");
-            main_Dois(numero_Projeto);
-        }
+    //Laço de repetição que é executado quando a variável "encontrado" for igual a 1
+    if(encontrado == 1)
+    {
+        //Chama função que substitui o arquivo original pelo temporário
+        substituirArquivo();
+        printf(VERDE"Cliente excluído com sucesso!\n"RESET);
+        //Comando que pausa o programa, até uma tecla ser pressionada
+        system("pause");
+        //Chama a função do menu principal
+        main_Dois(numero_Projeto);
+    }
+    else
+    {
+        printf(VERMELHO"Cliente não existe!\n"RESET);
+        //Comando que pausa o programa, até uma tecla ser pressionada
+        system("pause");
+        //Chama a função do menu principal
+        main_Dois(numero_Projeto);
+    }
 
 }
 
@@ -553,85 +691,113 @@ void excluirCliente(double numero_Projeto)
 
 void substituirArquivo()
 {
+    //Definicões de variáveis
     FILE *arquivo, *temp;
     arquivo = fopen ("Tabela.txt", "w"); // Limpa o arquivo
     arquivo = fopen ("Tabela.txt", "a"); // Abre o arquivo para escrita
+    temp = fopen ("Temp.txt", "w"); //Limpa o arquivo
     char ch;
     temp = fopen("Temp.txt", "r+");
+    //Laço de repetição que pega cada caractere do arquivo temporário
     while ((ch = fgetc(temp)) != EOF)
     {
-        // Escreva cada caractere no arquivo Produto.txt
+        // Escreva cada caractere no arquivo "Tabela.txt"
         fputc(ch, arquivo);
     }
-    //printf("Arquivo copiado com sucesso.\n");
+    //Fecha os arquivos "Tabela.txt" e "Temp.txt"
     fclose(arquivo);
-    temp = fopen ("Temp.txt", "w"); // Limpa o arquivo temporario
     fclose(temp);
-    /*system("pause");*/
 }
 
 void procurarCliente(double numero_Projeto)
 {
+    //Definições de variãveis
     int encontrado;
     cliente Cliente;
-
-    system("cls");
-    header();
-    gotoxy(85, 6);
-    printf(VERMELHO"P"RESET AMARELO"r"RESET VERMELHO"o"RESET AMARELO"c"RESET VERMELHO"u"RESET AMARELO"r"RESET VERMELHO"a "RESET AMARELO"c"RESET VERMELHO"l"RESET AMARELO"i"RESET VERMELHO"e"RESET AMARELO"n"RESET VERMELHO"t"RESET AMARELO"e"RESET "\n");
-
     FILE *arquivo;
     arquivo = fopen("Tabela.txt", "r+");
+
+    //Comando que limpa a tela
+    system("cls");
+    //Função que imprime o cabeçalho
+    header();
+    //Função que leva o prompt para uma determinada coordernada (x, y)
+    gotoxy(67, 6);
+    printf(VERMELHO"P"RESET AMARELO"r"RESET VERMELHO"o"RESET AMARELO"c"RESET VERMELHO"u"RESET AMARELO"r"RESET VERMELHO"a "RESET AMARELO"c"RESET VERMELHO"l"RESET AMARELO"i"RESET VERMELHO"e"RESET AMARELO"n"RESET VERMELHO"t"RESET AMARELO"e"RESET "\n");
+
+    //Laço de condição que verifica se o arquivo "Tabela.txt" foi aberto corretamente
     if(arquivo == NULL)
     {
+        gotoxy(63, 6);
         printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        //Comando que pausa o programa
         system("pause");
+        //Chama a função do menu principal
         main_Dois(numero_Projeto);
     }
 
+    //Lê earmazena o número de projeto a ser procurado
     printf(AMARELO"Digite o número do projeto: "RESET);
     scanf("%lf", &numero_Projeto);
 
+    //Laço de repetição que lê o arquivo "Tabbela.txt"
     while(fscanf(arquivo, "%127[^|]|%lf|(%d)%lf|%d/%d/%d", Cliente.nome_Cliente, &Cliente.numero_Projeto, &Cliente.DDD, &Cliente.numero_Cliente, &Cliente.validade.dia, &Cliente.validade.mes, &Cliente.validade.ano) != EOF)
     {
+        //Laço de condição que é executado se o número de projeto digitado é igual ao lido no arquivo "Tabela.txt"
         if(numero_Projeto == Cliente.numero_Projeto)
         {
+            //Comando que limpa a tela
             system("cls");
+            //Função que imprime o cabeçalho
             header();
-            gotoxy(85, 6);
+            //Função que leva o prompt para uma determinada coordenada (x, y)
+            gotoxy(67, 6);
             printf(VERMELHO"P"RESET AMARELO"r"RESET VERMELHO"o"RESET AMARELO"c"RESET VERMELHO"u"RESET AMARELO"r"RESET VERMELHO"a "RESET AMARELO"c"RESET VERMELHO"l"RESET AMARELO"i"RESET VERMELHO"e"RESET AMARELO"n"RESET VERMELHO"t"RESET AMARELO"e"RESET "\n");
             printf(AMARELO"Nome: "RESET"%s\n", Cliente.nome_Cliente);
             printf(AMARELO"Nº Projeto: "RESET"%.0lf\n", Cliente.numero_Projeto);
             printf(AMARELO"Telefone: "RESET"(%d)%.0lf\n", Cliente.DDD, Cliente.numero_Cliente);
             printf(AMARELO"Validade: "RESET" %d/%d/%d\n", Cliente.validade.dia, Cliente.validade.mes, Cliente.validade.ano);
+            //Comando que pausa o programa, até uma tecla ser pressionada
             system("pause");
+            //Define a variável "encontrado" igual a 1
             encontrado = 1;
+            //Chama a função do menu principal
             main_Dois(numero_Projeto);
         }
     }
+    //Laço de repetição que é executado se a variável "encontrado" for diferente de 1
     if(encontrado != 1)
     {
+        //Comando que limpa a tela
         system("cls");
+        //Função que imprime o cabeçalho
         header();
-        gotoxy(85, 6);
+        //Função que leva o prompt para uma determinada coordernada (x, y)
+        gotoxy(67, 6);
         printf(VERMELHO"P"RESET AMARELO"r"RESET VERMELHO"o"RESET AMARELO"c"RESET VERMELHO"u"RESET AMARELO"r"RESET VERMELHO"a "RESET AMARELO"c"RESET VERMELHO"l"RESET AMARELO"i"RESET VERMELHO"e"RESET AMARELO"n"RESET VERMELHO"t"RESET AMARELO"e"RESET "\n");
-        gotoxy(62, 8);
+        //Função que leva o prompt para uma determinada coordenada (x, y)
+        gotoxy(63, 8);
         printf(VERMELHO"Cliente não encontrado!\n"RESET);
+        //Comando que pausa o programa, até uma tecla ser pressionada
         system("pause");
+        //Fecha o arquivo "Tabela.txt"
         fclose(arquivo);
+        //Chama a função do arquivo principal
         main_Dois(numero_Projeto);
     }
 }
 
 int header()
 {
-    //design(200, 170);
+    //Função que leva o prompt até uma determinada coordernada (x, y)
     gotoxy(0, 0);
-    printf(AMARELO"---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"RESET);
-    gotoxy(85, 2);
+    printf(AMARELO"----------------------------------------------------------------------------------------------------------------------------------------------------\n"RESET);
+    //Funçaõ que leva o prompt até uma determinada coordenada (x, y)
+    gotoxy(67, 2);
     printf(VERMELHO"T"RESET AMARELO"a"RESET VERMELHO"b"RESET AMARELO"e"RESET VERMELHO"l" AMARELO"a "RESET VERMELHO"B"RESET AMARELO"o"RESET VERMELHO"m"RESET AMARELO"b"RESET VERMELHO"e"RESET AMARELO"i"RESET VERMELHO"r"RESET AMARELO"o"RESET"\n");
+    //Função que leva o prompt até uma determinada coordenada (x, y)
     gotoxy(0, 4);
-    printf(AMARELO"---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"RESET);
+    printf(AMARELO"----------------------------------------------------------------------------------------------------------------------------------------------------\n"RESET);
     return 0;
 }
 
@@ -644,6 +810,7 @@ int gotoxy(int x, int y)
 
 void print_alert(int days, double numero_Projeto, int validade)
 {
+    //Definições de variáveis
     time_t current_time;
     struct tm *current_tm;
     time(&current_time);
@@ -651,37 +818,49 @@ void print_alert(int days, double numero_Projeto, int validade)
     current_tm->tm_mday += days;
     mktime(current_tm);
     char alert_message[100];
-    header();
-    gotoxy(89, 6);
-    strftime(alert_message, sizeof(alert_message), VERMELHO"Alerta!"RESET, current_tm);
-    printf("%s\n", alert_message);
-
     cliente Cliente;
     FILE *arquivo;
     arquivo = fopen("Tabela.txt", "r+");
-    if(arquivo == NULL)
-    {
-        printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
-        system("pause");
-        main_Dois(numero_Projeto);
-    }
-
     time_t mytime;
     mytime = time(NULL);
     struct tm tm = *localtime(&mytime);
     int validade_mes;
 
+    //Função que imprime o cabeçalho
+    header();
+    //Função que leva o prompt para uma determinada coordenada (x, y)
+    gotoxy(71, 6);
+    //Imprime a string "Alerta!"
+    strftime(alert_message, sizeof(alert_message), VERMELHO"Alerta!"RESET, current_tm);
+    printf("%s\n", alert_message);
+
+    //Laço de condição que verifica se o arquivo "Tabela.txt" foi aberto corretamente
+    if(arquivo == NULL)
+    {
+        printf(VERMELHO"Erro ao abrir o arquivo!\n"RESET);
+        //Comando que pausa o programa até uma tecla ser pressionada
+        system("pause");
+        //Chama a função do menu principal
+        main_Dois(numero_Projeto);
+    }
+
+    //Laço de repetição que lê o arquivo "Tabela.txt"
     while(fscanf(arquivo, "%127[^|]|%lf|(%d)%lf|%d/%d/%d", Cliente.nome_Cliente, &Cliente.numero_Projeto, &Cliente.DDD, &Cliente.numero_Cliente, &Cliente.validade.dia, &Cliente.validade.mes, &Cliente.validade.ano) != EOF)
     {
+        //Laço de condição que é executado se o ano da data de validade lido for igual ou menor ao ano atual
         if(Cliente.validade.ano == (tm.tm_year + 1900) && Cliente.validade.mes <= ((tm.tm_mon + 1) + 3))
         {
             printf(VERMELHO"Noventa dias para vencer!\n"RESET);
             printf(AMARELO"Nome: "RESET"%s\n", Cliente.nome_Cliente);
             printf(AMARELO"Nº Projeto: "RESET"%.0lf\n", Cliente.numero_Projeto);
             printf(AMARELO"Telefone: "RESET"(%d)%.0lf\n", Cliente.DDD, Cliente.numero_Cliente);
-            printf(AMARELO"\n---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"RESET);
+            printf(AMARELO"\n----------------------------------------------------------------------------------------------------------------------------------------------------\n"RESET);
+            //Comando que pausa o programa, até uma tecla ser pressionada
             system("pause");
         }
     }
+    //Fecha o arquivo "Tabela.txt"
     fclose(arquivo);
+    //Chama a função do menu principal
+    main_Dois(numero_Projeto);
 }
